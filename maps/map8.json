@@ -2,7 +2,7 @@
   "metadata": { "id": "map8", "name": "Sports Complex", "description": "Sports grounds & stadium", "version": "2.0", "author": "Game Developer" },
   "dimensions": { "width": 16, "height": 12 },
   "tiles": [
-    "FFFFFFFF.FFFFFFF",
+    "FFFFFFFFFFFFFFFF",
     "F..............F",
     "F.CCCC....CCCC.F",
     "F.C..C....C..C.F",
@@ -13,16 +13,16 @@
     "F..FFFFFFFFFF..F",
     "F..F........F..F",
     "F..FFFFFFFFFF..F",
-    "FFFFFFFFFFFFFFFF"
+    "FFFFFFFFFFFFFF.E"
   ],
-  "tile_legend": { "F": "GREEN_FIELD", "C": "CAFETERIA", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "tile_legend": { "F": "GREEN_FIELD", "C": "SPORTS_FACILITY", ".": "SPORTS_FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
   "spawn_points": {
     "default": { "x": 8, "y": 7, "description": "Sports center" },
-    "from_map4": { "x": 6, "y": 0, "description": "From desert (north)" },
-    "from_map7": { "x": 0, "y": 6, "description": "From dorms (west)" }
+    "from_map7": { "x": 0, "y": 7, "description": "From dorms (west)" },
+    "from_map1": { "x": 15, "y": 11, "description": "Back to courtyard (east)" }
   },
   "transitions": [
-    { "from_position": { "x": 6, "y": 0 }, "to_map": "map4", "to_spawn": "from_map8" },
-    { "from_position": { "x": 0, "y": 6 }, "to_map": "map7", "to_spawn": "from_map8" }
+    { "from_position": { "x": 0, "y": 7 }, "to_map": "map7", "to_spawn": "from_map8" },
+    { "from_position": { "x": 15, "y": 11 }, "to_map": "map1", "to_spawn": "from_map8" }
   ]
 }

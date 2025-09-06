@@ -2,7 +2,7 @@
   "metadata": { "id": "map3", "name": "Underground Cave", "description": "Dark and mysterious cave", "version": "2.0", "author": "Game Developer" },
   "dimensions": { "width": 15, "height": 10 },
   "tiles": [
-    "VVVVVVVEVVVVVVV",
+    "VVVVVVVVVVVVVVV",
     "V.P...........V",
     "V.RRRR.PPPP...V",
     "V.R..R.P..P...V",
@@ -13,16 +13,14 @@
     "E............EV",
     "VVVVVVVVVVVVVVV"
   ],
-  "tile_legend": { "V": "CAVE_WALL", "R": "ROCK", "P": "WATER_POOL", ".": "FLOOR", "E": "EXIT" },
+  "tile_legend": { "V": "CAVE_WALL", "R": "ROCK", "P": "WATER_POOL", ".": "CAVE_FLOOR", "E": "EXIT" },
   "spawn_points": {
     "default": { "x": 1, "y": 1, "description": "Cave entrance" },
-    "from_map2": { "x": 0, "y": 6, "description": "From forest (west)" },
-    "from_map4": { "x": 14, "y": 6, "description": "From desert (east)" },
-    "from_map7": { "x": 7, "y": 9, "description": "From dorms (south)" }
+    "from_map2": { "x": 0, "y": 8, "description": "From forest (west)" },
+    "from_map4": { "x": 14, "y": 8, "description": "From desert (east)" }
   },
   "transitions": [
-    { "from_position": { "x": 0, "y": 6 }, "to_map": "map2", "to_spawn": "from_map3" },
-    { "from_position": { "x": 14, "y": 6 }, "to_map": "map4", "to_spawn": "from_map3" },
-    { "from_position": { "x": 7, "y": 9 }, "to_map": "map7", "to_spawn": "from_map3" }
+    { "from_position": { "x": 0, "y": 8 }, "to_map": "map2", "to_spawn": "from_map3" },
+    { "from_position": { "x": 14, "y": 8 }, "to_map": "map4", "to_spawn": "from_map3" }
   ]
 }

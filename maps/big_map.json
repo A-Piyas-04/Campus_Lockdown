@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "id": "big_map",
+    "name": "Unified Campus",
+    "description": "All campus areas merged into one large map",
+    "version": "1.0",
+    "author": "Game Developer"
+  },
+  "dimensions": { "width": 66, "height": 22 },
+  "tiles": [
+    "TTTTTTTTTTTTTFFFFFF.FFFFFFTTTTTT.TTTTTTVVVVVVV.VVVVVVV#######.######",
+    "T...........TF###L###L###FT.LLLLL.....PTV.P...........V#............#",
+    "T.FFF.LLL.F.TF#I.L.C.L.D#FT.LLLLL.TTTT.TV.RRRR.PPPP...V#.LLL..LLL.L.#",
+    "T.F.F.L.L.F.TF#I.LLL.L.D#FT.LLLLL.T..T.TV.R..R.P..P...V#.L.L..L.L.L.#",
+    "T.FFF.LLL.F.TF#I.....L.D#FT.......T..T.TV.R..R.P..P...V#.LLL..LLL.L.#",
+    "T...........TF###.....###FT.TTTT..TTTT.TV.RRRR.PPPP...V#.............",
+    "......P.....TF......P.....T.T..T.......TV.............V......P......#",
+    "T.FFFFF.FFF.TF.FFFFFFFF..FT.T..T..LLL..TV...RRRRR.....V#.LLLLLLLL...#",
+    "T.F...F.F.F..TF..........FT.TTTT..LLL..TV................V#............#",
+    "T.FFFFF.FFF.TF###########FTTTTTT.TTTTTTVVVVVVVVVVVVVVVV#######.######",
+    "TTTTTTTTTTTTTFFFFFF.FFFFFFTTTTTT.TTTTTTVVVVVVV.VVVVVVV#######.######",
+    "SSSSSSS.SSSSSFFFFFFF.FFFFFFFFFFFFFFF.FFFFFFFF...................",
+    "S..........SF.............FF..............F...................",
+    "S.RRR..RRR.SF.DDD..DDD..D.FF.CCCC....CCCC.F...................",
+    "S.R.R..R.R.SF.D.D..D.D..D.FF.C..C....C..C.F...................",
+    "S.RRR..RRR.SF.DDD..DDD..D.FF.C..C....C..C.F...................",
+    "S..........SF.............FF.CCCC....CCCC.F...................",
+    "...........SF.............FF..............F...................",
+    "S..RRRRRR..SF.DDD..DDD..D.FF.......P.......F..................",
+    "S...........SF.D.D..D.D..D.FF..FFFFFFFFFF..F..................",
+    "SSSSSSSSSSSSF.DDD..DDD..D.FF..F........F..F..................",
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFF.F..FFFFFFFFFF..F.................."
+  ],
+  "tile_legend": {
+    "F": "GREEN_FIELD",
+    "L": "LAKE",
+    "I": "LIBRARY",
+    "C": "CAFETERIA",
+    "D": "DORMITORY",
+    "T": "TREE",
+    "V": "CAVE_WALL",
+    "R": "ROCK",
+    "S": "SAND",
+    "#": "WALL",
+    ".": "FLOOR",
+    "P": "PLAYER_SPAWN"
+  },
+  "spawn_points": {
+    "default": { "x": 19, "y": 6, "description": "Central campus" }
+  }
+}

@@ -2,7 +2,7 @@
   "metadata": { "id": "map2", "name": "Forest Path", "description": "A dense forest trail", "version": "2.0", "author": "Game Developer" },
   "dimensions": { "width": 14, "height": 10 },
   "tiles": [
-    "TTTTTTTETTTTTT",
+    "TTTTTTTTTTTTTT",
     "T.LLLLL.....PT",
     "T.LLLLL.TTTT.T",
     "T.LLLLL.T..T.T",
@@ -10,25 +10,23 @@
     "T.TTTT..TTTT.T",
     "E.T..T.......T",
     "T.T..T..LLL..T",
-    "T.TTTT..LLL.ET",
-    "TTTTTTTETTTTTT"
+    "T.TTTT...LL..T",
+    "TTTTTTTTETTTTTT"
   ],
   "tile_legend": {
     "T": "TREE",
     "L": "LAKE",
-    ".": "FLOOR",
+    ".": "FOREST_FLOOR",
     "P": "PLAYER_SPAWN",
     "E": "EXIT"
   },
   "spawn_points": {
     "default": { "x": 12, "y": 1, "description": "Forest entrance" },
     "from_map1": { "x": 0, "y": 6, "description": "From courtyard (west)" },
-    "from_map3": { "x": 13, "y": 6, "description": "From cave (east)" },
-    "from_map6": { "x": 6, "y": 9, "description": "From lab (south)" }
+    "from_map3": { "x": 13, "y": 9, "description": "From cave (east)" }
   },
   "transitions": [
     { "from_position": { "x": 0, "y": 6 }, "to_map": "map1", "to_spawn": "from_map2" },
-    { "from_position": { "x": 13, "y": 6 }, "to_map": "map3", "to_spawn": "from_map2" },
-    { "from_position": { "x": 6, "y": 9 }, "to_map": "map6", "to_spawn": "from_map2" }
+    { "from_position": { "x": 13, "y": 9 }, "to_map": "map3", "to_spawn": "from_map2" }
   ]
 }

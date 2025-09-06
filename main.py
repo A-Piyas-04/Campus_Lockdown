@@ -66,7 +66,7 @@ TILE_COLORS = {
     TileType.FLOOR: (160, 160, 160),   # Gray
     TileType.BUILDING: (101, 67, 33),  # Brown
     TileType.PLAYER_SPAWN: (255, 255, 0),  # Yellow
-    TileType.EXIT: (255, 0, 255),      # Magenta
+    TileType.EXIT: (139, 69, 19),      # Brown (doorway frame)
     TileType.LAKE: (0, 100, 200),      # Deep Blue
     TileType.GREEN_FIELD: (124, 252, 0),  # Lawn Green
     TileType.LIBRARY: (160, 82, 45),   # Saddle Brown
@@ -136,18 +136,32 @@ class Tile:
         
         # Add visual details based on tile type
         if self.tile_type == TileType.WATER:
-            # Add water ripple effect
-            pygame.draw.circle(screen, (100, 180, 255), 
-                             (self.pixel_x + TILE_SIZE//2, self.pixel_y + TILE_SIZE//2), 
-                             TILE_SIZE//4, 2)
+            # Add animated water ripple effects
+            import time
+            ripple_offset = int(time.time() * 3) % 10
+            for i in range(3):
+                ripple_radius = (TILE_SIZE//6) + (i * 4) + (ripple_offset % 4)
+                if ripple_radius < TILE_SIZE//2:
+                    pygame.draw.circle(screen, (100, 180, 255), 
+                                     (self.pixel_x + TILE_SIZE//2, self.pixel_y + TILE_SIZE//2), 
+                                     ripple_radius, 1)
         elif self.tile_type == TileType.TREE:
-            # Add tree trunk and leaves
-            trunk_rect = pygame.Rect(self.pixel_x + TILE_SIZE//2 - 3, 
-                                   self.pixel_y + TILE_SIZE//2, 6, TILE_SIZE//2)
+            # Enhanced tree with detailed trunk and layered leaves
+            trunk_width = max(4, TILE_SIZE//8)
+            trunk_rect = pygame.Rect(self.pixel_x + TILE_SIZE//2 - trunk_width//2, 
+                                   self.pixel_y + TILE_SIZE//2, trunk_width, TILE_SIZE//2)
             pygame.draw.rect(screen, (101, 67, 33), trunk_rect)  # Brown trunk
-            pygame.draw.circle(screen, (0, 150, 0), 
-                             (self.pixel_x + TILE_SIZE//2, self.pixel_y + TILE_SIZE//3), 
-                             TILE_SIZE//3)  # Green leaves
+            # Add trunk texture
+            for i in range(0, TILE_SIZE//2, 4):
+                pygame.draw.line(screen, (80, 50, 20), 
+                               (trunk_rect.left, trunk_rect.top + i), 
+                               (trunk_rect.right, trunk_rect.top + i), 1)
+            
+            # Layered leaves for depth
+            leaf_center_x = self.pixel_x + TILE_SIZE//2
+            leaf_center_y = self.pixel_y + TILE_SIZE//3
+            pygame.draw.circle(screen, (0, 100, 0), (leaf_center_x, leaf_center_y), TILE_SIZE//3)  # Dark green base
+            pygame.draw.circle(screen, (0, 150, 0), (leaf_center_x-2, leaf_center_y-2), TILE_SIZE//4)  # Lighter green highlight
         elif self.tile_type == TileType.WALL:
             # Add brick pattern
             for i in range(0, TILE_SIZE, 10):
@@ -155,6 +169,95 @@ class Tile:
                     if (i + j) % 20 == 0:
                         pygame.draw.rect(screen, (160, 82, 45), 
                                        (self.pixel_x + i, self.pixel_y + j, 8, 8))
+        elif self.tile_type == TileType.EXIT:
+            # Draw doorway design
+            # Door frame (darker brown)
+            frame_color = (101, 67, 33)
+            # Door opening (black)
+            opening_color = (40, 40, 40)
+            
+            # Draw door frame
+            frame_width = TILE_SIZE // 8
+            pygame.draw.rect(screen, frame_color, 
+                           (self.pixel_x, self.pixel_y, TILE_SIZE, frame_width))  # Top
+            pygame.draw.rect(screen, frame_color, 
+                           (self.pixel_x, self.pixel_y + TILE_SIZE - frame_width, TILE_SIZE, frame_width))  # Bottom
+            pygame.draw.rect(screen, frame_color, 
+                           (self.pixel_x, self.pixel_y, frame_width, TILE_SIZE))  # Left
+            pygame.draw.rect(screen, frame_color, 
+                           (self.pixel_x + TILE_SIZE - frame_width, self.pixel_y, frame_width, TILE_SIZE))  # Right
+            
+            # Draw door opening (center)
+            opening_rect = pygame.Rect(self.pixel_x + frame_width, self.pixel_y + frame_width, 
+                                     TILE_SIZE - 2*frame_width, TILE_SIZE - 2*frame_width)
+            pygame.draw.rect(screen, opening_color, opening_rect)
+            
+            # Add door handle
+            handle_size = max(2, TILE_SIZE // 16)
+            handle_x = self.pixel_x + TILE_SIZE - frame_width - handle_size * 2
+            handle_y = self.pixel_y + TILE_SIZE // 2
+            pygame.draw.circle(screen, (255, 215, 0), (handle_x, handle_y), handle_size)  # Gold handle
+        elif self.tile_type == TileType.LIBRARY:
+            # Add book shelves pattern
+            shelf_color = (120, 60, 30)
+            book_colors = [(200, 50, 50), (50, 150, 50), (50, 50, 200), (200, 200, 50)]
+            for i in range(0, TILE_SIZE, TILE_SIZE//4):
+                pygame.draw.rect(screen, shelf_color, (self.pixel_x, self.pixel_y + i, TILE_SIZE, 3))
+                for j in range(0, TILE_SIZE, 8):
+                    book_color = book_colors[(i//4 + j//8) % len(book_colors)]
+                    pygame.draw.rect(screen, book_color, (self.pixel_x + j, self.pixel_y + i + 3, 6, TILE_SIZE//4 - 6))
+        elif self.tile_type == TileType.DORMITORY:
+            # Add window pattern
+            window_color = (100, 150, 200)
+            frame_color = (80, 80, 80)
+            window_size = TILE_SIZE // 3
+            window_x = self.pixel_x + (TILE_SIZE - window_size) // 2
+            window_y = self.pixel_y + (TILE_SIZE - window_size) // 2
+            pygame.draw.rect(screen, frame_color, (window_x - 2, window_y - 2, window_size + 4, window_size + 4))
+            pygame.draw.rect(screen, window_color, (window_x, window_y, window_size, window_size))
+            # Window cross
+            pygame.draw.line(screen, frame_color, (window_x + window_size//2, window_y), 
+                           (window_x + window_size//2, window_y + window_size), 2)
+            pygame.draw.line(screen, frame_color, (window_x, window_y + window_size//2), 
+                           (window_x + window_size, window_y + window_size//2), 2)
+        elif self.tile_type == TileType.CAFETERIA:
+            # Add table and chairs pattern
+            table_color = (139, 69, 19)
+            chair_color = (101, 67, 33)
+            # Table
+            table_size = TILE_SIZE // 2
+            table_x = self.pixel_x + (TILE_SIZE - table_size) // 2
+            table_y = self.pixel_y + (TILE_SIZE - table_size) // 2
+            pygame.draw.rect(screen, table_color, (table_x, table_y, table_size, table_size))
+            # Chairs (small squares around table)
+            chair_size = TILE_SIZE // 8
+            positions = [(table_x - chair_size, table_y), (table_x + table_size, table_y),
+                        (table_x, table_y - chair_size), (table_x, table_y + table_size)]
+            for pos in positions:
+                pygame.draw.rect(screen, chair_color, (pos[0], pos[1], chair_size, chair_size))
+        elif self.tile_type == TileType.ROCK:
+            # Add rock texture with highlights and shadows
+            highlight_color = (160, 160, 160)
+            shadow_color = (80, 80, 80)
+            # Draw random rock-like shapes
+            import random
+            random.seed(self.grid_x * 1000 + self.grid_y)  # Consistent pattern per tile
+            for _ in range(3):
+                size = random.randint(TILE_SIZE//6, TILE_SIZE//3)
+                x = self.pixel_x + random.randint(0, TILE_SIZE - size)
+                y = self.pixel_y + random.randint(0, TILE_SIZE - size)
+                pygame.draw.circle(screen, shadow_color, (x + 2, y + 2), size//2)
+                pygame.draw.circle(screen, highlight_color, (x, y), size//2)
+        elif self.tile_type == TileType.GREEN_FIELD:
+            # Add grass texture
+            grass_colors = [(100, 200, 100), (120, 220, 120), (80, 180, 80)]
+            import random
+            random.seed(self.grid_x * 1000 + self.grid_y)
+            for _ in range(8):
+                grass_color = random.choice(grass_colors)
+                x = self.pixel_x + random.randint(0, TILE_SIZE - 2)
+                y = self.pixel_y + random.randint(0, TILE_SIZE - 4)
+                pygame.draw.line(screen, grass_color, (x, y + 4), (x, y), 1)
         
         # Draw tile border for grid visibility
         pygame.draw.rect(screen, (0, 0, 0), 

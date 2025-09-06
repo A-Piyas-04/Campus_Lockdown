@@ -10,18 +10,18 @@
     "T...........T",
     "E.....P.....T",
     "T.FFFFF.FFF.T",
-    "T.F...F.F.F.E",
-    "T.FFFFF.FFF.T",
+    "T.F...F.F.F.T",
+    "T.FFFFF.FFF.E",
     "TTTTTTTTTTTTT"
   ],
-  "tile_legend": { "T": "TREE", "F": "GREEN_FIELD", "L": "LAKE", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "tile_legend": { "T": "TREE", "F": "GREEN_FIELD", "L": "LAKE", ".": "GARDEN_PATH", "P": "PLAYER_SPAWN", "E": "EXIT" },
   "spawn_points": {
     "default": { "x": 6, "y": 6, "description": "Garden center" },
-    "from_map1": { "x": 6, "y": 0, "description": "From courtyard (north)" },
-    "from_map6": { "x": 12, "y": 6, "description": "From lab (east)" }
+    "from_map4": { "x": 0, "y": 6, "description": "From desert (west)" },
+    "from_map6": { "x": 12, "y": 9, "description": "From lab (east)" }
   },
   "transitions": [
-    { "from_position": { "x": 6, "y": 0 }, "to_map": "map1", "to_spawn": "from_map5" },
-    { "from_position": { "x": 12, "y": 6 }, "to_map": "map6", "to_spawn": "from_map5" }
+    { "from_position": { "x": 0, "y": 6 }, "to_map": "map4", "to_spawn": "from_map5" },
+    { "from_position": { "x": 12, "y": 9 }, "to_map": "map6", "to_spawn": "from_map5" }
   ]
 }
