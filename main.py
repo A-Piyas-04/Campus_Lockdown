@@ -19,6 +19,11 @@ WIDTH = 1000
 HEIGHT = 800
 FPS = 60
 
+# Dark environment constants
+VISIBILITY_RADIUS = 0  # Player's visibility radius in pixels
+FLASHLIGHT_RADIUS = 130   # Flashlight radius when enabled (smaller, focused beam)
+DARKNESS_ALPHA = 200     # Alpha value for darkness overlay (0-255, higher = darker)
+
 # Colors (RGB values)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -662,10 +667,13 @@ class Game:
         """
         # Set up the display
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Campus Lockdown - Scrollable Map Edition")
+        pygame.display.set_caption("Campus Lockdown - Dark Campus Edition")
         
         # Set up the game clock for consistent FPS
         self.clock = pygame.time.Clock()
+        
+        # Darkness overlay will be created dynamically in _create_flashlight_effect
+        self.darkness_overlay = None
         
         # Try to load map from JSON, fallback to sample map
         try:
@@ -693,6 +701,9 @@ class Game:
         
         # Game state
         self.running = True
+        
+        # Flashlight state
+        self.flashlight_enabled = False
         
         # Background color for better contrast
         self.bg_color = (20, 30, 40)  # Dark blue-gray background
@@ -759,6 +770,10 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
+                elif event.key == pygame.K_f:
+                    # Toggle flashlight on/off
+                    self.flashlight_enabled = not self.flashlight_enabled
+                    print(f"Flashlight {'ON' if self.flashlight_enabled else 'OFF'}")
     
     def handle_input(self):
         """
@@ -797,7 +812,7 @@ class Game:
     
     def draw(self):
         """
-        Draw all game objects to the screen with camera system.
+        Draw all game objects to the screen with camera system and dark environment effect.
         """
         # Fill the screen with background color
         self.screen.fill(self.bg_color)
@@ -808,11 +823,52 @@ class Game:
         # Draw the player with camera
         self.player.draw(self.screen, self.camera)
         
-        # Draw UI elements
+        # Create and apply the flashlight effect
+        self._create_flashlight_effect()
+        if self.darkness_overlay:
+            self.screen.blit(self.darkness_overlay, (0, 0))
+        
+        # Draw UI elements on top of darkness
         self._draw_ui()
         
         # Update the display
         pygame.display.flip()
+    
+    def _create_flashlight_effect(self):
+        """
+        Create a flashlight effect by clearing a circular area around the player on the darkness overlay.
+        Uses different radius based on flashlight state.
+        """
+        # Calculate player's screen position
+        player_screen_x = self.player.x - self.camera.x + TILE_SIZE // 2
+        player_screen_y = self.player.y - self.camera.y + TILE_SIZE // 2
+        
+        # Create a new darkness overlay surface with per-pixel alpha
+        self.darkness_overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        self.darkness_overlay.fill((0, 0, 0, DARKNESS_ALPHA))  # Fill with semi-transparent black
+        
+        # Create the visibility circle by drawing transparent pixels
+        center_x = int(player_screen_x)
+        center_y = int(player_screen_y)
+        
+        # Choose radius based on flashlight state
+        current_radius = FLASHLIGHT_RADIUS if self.flashlight_enabled else VISIBILITY_RADIUS
+        
+        # Draw the main visibility circle (fully transparent)
+        for x in range(max(0, center_x - current_radius), min(WIDTH, center_x + current_radius + 1)):
+            for y in range(max(0, center_y - current_radius), min(HEIGHT, center_y + current_radius + 1)):
+                distance = ((x - center_x) ** 2 + (y - center_y) ** 2) ** 0.5
+                if distance <= current_radius:
+                    # Create gradient effect
+                    if distance <= current_radius * 0.7:
+                        # Inner circle - fully visible
+                        alpha = 0
+                    else:
+                        # Outer ring - gradient fade
+                        fade_factor = (distance - current_radius * 0.7) / (current_radius * 0.3)
+                        alpha = int(DARKNESS_ALPHA * fade_factor)
+                    
+                    self.darkness_overlay.set_at((x, y), (0, 0, 0, alpha))
     
     def _draw_ui(self):
         """
@@ -855,8 +911,14 @@ class Game:
             tile_surface = font.render(tile_text, True, YELLOW)
             self.screen.blit(tile_surface, (10, 110))
         
+        # Flashlight status indicator
+        flashlight_status = f"Flashlight: {'ON' if self.flashlight_enabled else 'OFF'} (Press F to toggle)"
+        flashlight_color = YELLOW if self.flashlight_enabled else WHITE
+        flashlight_surface = font.render(flashlight_status, True, flashlight_color)
+        self.screen.blit(flashlight_surface, (10, 135))
+        
         # Controls reminder
-        controls_text = "Use WASD or Arrow Keys to explore the scrollable campus map"
+        controls_text = "Use WASD or Arrow Keys to explore | Press F to toggle flashlight"
         controls_surface = font.render(controls_text, True, WHITE)
         self.screen.blit(controls_surface, (10, HEIGHT - 30))
     
@@ -867,6 +929,7 @@ class Game:
         print("Starting Campus Lockdown...")
         print("Controls:")
         print("  Arrow Keys or WASD: Move player around campus")
+        print("  F: Toggle flashlight on/off")
         print("  ESC or Close Window: Quit game")
         print(f"Map loaded: {self.game_map.name} ({self.game_map.width}x{self.game_map.height} tiles)")
         
