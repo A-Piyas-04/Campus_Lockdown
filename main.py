@@ -13,8 +13,8 @@ import sys
 pygame.init()
 
 # Game constants
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 1000
+HEIGHT = 800
 FPS = 60
 
 # Colors (RGB values)
@@ -23,14 +23,15 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
 
 # Player constants
 PLAYER_SIZE = 50
-PLAYER_SPEED = 5
+PLAYER_SPEED = 6
 
 class Player:
     """
-    Player class representing the controllable square character.
+    Player class representing the controllable sprite character.
     """
     
     def __init__(self, x, y):
@@ -41,37 +42,91 @@ class Player:
             x (int): Initial x position
             y (int): Initial y position
         """
-        self.x = x
-        self.y = y
+        self.x = float(x)  # Use float for smoother movement
+        self.y = float(y)
         self.size = PLAYER_SIZE
         self.speed = PLAYER_SPEED
         self.color = BLUE
+        
+        # Load player sprite (fallback to colored rectangle if sprite fails)
+        self.sprite = None
+        self.use_sprite = False
+        try:
+            # Try to load the SVG sprite (convert to surface)
+            self.sprite = self._create_sprite_surface()
+            self.use_sprite = True
+        except Exception as e:
+            print(f"Could not load sprite, using colored rectangle: {e}")
+            self.use_sprite = False
+    
+    def _create_sprite_surface(self):
+        """
+        Create a sprite surface with a knight-like character design.
+        
+        Returns:
+            pygame.Surface: The sprite surface
+        """
+        surface = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+        
+        # Draw a more detailed knight character
+        # Body (blue armor)
+        pygame.draw.rect(surface, (74, 144, 226), (15, 20, 20, 25), border_radius=3)
+        
+        # Arms
+        pygame.draw.rect(surface, (74, 144, 226), (10, 22, 8, 15), border_radius=2)
+        pygame.draw.rect(surface, (74, 144, 226), (32, 22, 8, 15), border_radius=2)
+        
+        # Legs
+        pygame.draw.rect(surface, (46, 92, 138), (18, 40, 6, 8), border_radius=1)
+        pygame.draw.rect(surface, (46, 92, 138), (26, 40, 6, 8), border_radius=1)
+        
+        # Head/Helmet (silver)
+        pygame.draw.circle(surface, (192, 192, 192), (25, 15), 8)
+        
+        # Helmet visor
+        pygame.draw.rect(surface, (51, 51, 51), (20, 12, 10, 4), border_radius=1)
+        
+        # Eyes (red glow through visor)
+        pygame.draw.circle(surface, (255, 107, 107), (22, 14), 1)
+        pygame.draw.circle(surface, (255, 107, 107), (28, 14), 1)
+        
+        # Sword
+        pygame.draw.rect(surface, (139, 69, 19), (38, 18, 2, 12), border_radius=1)
+        pygame.draw.rect(surface, (192, 192, 192), (36, 15, 6, 3), border_radius=1)
+        
+        return surface
     
     def move(self, dx, dy):
         """
-        Move the player by the given delta values.
+        Move the player by the given delta values with smooth movement.
         Ensures the player stays within screen boundaries.
         
         Args:
-            dx (int): Change in x position
-            dy (int): Change in y position
+            dx (float): Change in x position (-1, 0, or 1)
+            dy (float): Change in y position (-1, 0, or 1)
         """
-        # Update position
-        self.x += dx * self.speed
-        self.y += dy * self.speed
+        # Calculate new position with smooth movement
+        new_x = self.x + (dx * self.speed)
+        new_y = self.y + (dy * self.speed)
         
         # Keep player within screen boundaries
-        self.x = max(0, min(self.x, WIDTH - self.size))
-        self.y = max(0, min(self.y, HEIGHT - self.size))
+        self.x = max(0, min(new_x, WIDTH - self.size))
+        self.y = max(0, min(new_y, HEIGHT - self.size))
     
     def draw(self, screen):
         """
-        Draw the player on the screen.
+        Draw the player sprite or fallback rectangle on the screen.
         
         Args:
             screen: Pygame screen surface to draw on
         """
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.size, self.size))
+        if self.use_sprite and self.sprite:
+            # Draw the sprite
+            screen.blit(self.sprite, (int(self.x), int(self.y)))
+        else:
+            # Fallback to colored rectangle with border for better visibility
+            pygame.draw.rect(screen, self.color, (int(self.x), int(self.y), self.size, self.size))
+            pygame.draw.rect(screen, WHITE, (int(self.x), int(self.y), self.size, self.size), 2)
 
 class Game:
     """
@@ -84,18 +139,21 @@ class Game:
         """
         # Set up the display
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Adventure Quest")
+        pygame.display.set_caption("Adventure Quest - Enhanced Edition")
         
         # Set up the game clock for consistent FPS
         self.clock = pygame.time.Clock()
         
-        # Create player at center of screen
+        # Create player at center of screen (adjusted for new dimensions)
         player_x = (WIDTH - PLAYER_SIZE) // 2
         player_y = (HEIGHT - PLAYER_SIZE) // 2
         self.player = Player(player_x, player_y)
         
         # Game state
         self.running = True
+        
+        # Background color for better contrast
+        self.bg_color = (20, 30, 40)  # Dark blue-gray background
     
     def handle_events(self):
         """
@@ -141,14 +199,52 @@ class Game:
         """
         Draw all game objects to the screen.
         """
-        # Clear screen with black background
-        self.screen.fill(BLACK)
+        # Clear screen with dark background for better contrast
+        self.screen.fill(self.bg_color)
+        
+        # Draw a subtle grid pattern for visual reference
+        self._draw_grid()
         
         # Draw the player
         self.player.draw(self.screen)
         
+        # Draw UI elements
+        self._draw_ui()
+        
         # Update the display
         pygame.display.flip()
+    
+    def _draw_grid(self):
+        """
+        Draw a subtle grid pattern on the background.
+        """
+        grid_size = 50
+        grid_color = (30, 40, 50)  # Slightly lighter than background
+        
+        # Draw vertical lines
+        for x in range(0, WIDTH, grid_size):
+            pygame.draw.line(self.screen, grid_color, (x, 0), (x, HEIGHT), 1)
+        
+        # Draw horizontal lines
+        for y in range(0, HEIGHT, grid_size):
+            pygame.draw.line(self.screen, grid_color, (0, y), (WIDTH, y), 1)
+    
+    def _draw_ui(self):
+        """
+        Draw UI elements like position indicator.
+        """
+        # Create font for UI text
+        font = pygame.font.Font(None, 24)
+        
+        # Display player position
+        pos_text = f"Position: ({int(self.player.x)}, {int(self.player.y)})"
+        text_surface = font.render(pos_text, True, WHITE)
+        self.screen.blit(text_surface, (10, 10))
+        
+        # Display controls reminder
+        controls_text = "Arrow Keys/WASD: Move | ESC: Quit"
+        controls_surface = font.render(controls_text, True, (200, 200, 200))
+        self.screen.blit(controls_surface, (10, HEIGHT - 30))
     
     def run(self):
         """
