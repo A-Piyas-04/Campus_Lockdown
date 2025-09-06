@@ -382,6 +382,308 @@ class Map:
                 pygame.draw.rect(screen, (0, 0, 0), 
                                (screen_x, screen_y, TILE_SIZE, TILE_SIZE), 1)
 
+class ItemType:
+    """Item type constants for different collectible items."""
+    POTION = 0
+    SCROLL = 1
+    KEY = 2
+    
+    # Item names for display
+    NAMES = {
+        POTION: "Health Potion",
+        SCROLL: "Magic Scroll",
+        KEY: "Golden Key"
+    }
+    
+    # Item colors for visual representation
+    COLORS = {
+        POTION: (255, 100, 100),  # Red
+        SCROLL: (100, 100, 255),  # Blue
+        KEY: (255, 215, 0)        # Gold
+    }
+    
+    # Item descriptions
+    DESCRIPTIONS = {
+        POTION: "Restores health when consumed",
+        SCROLL: "Contains ancient magical knowledge",
+        KEY: "Opens locked doors and chests"
+    }
+
+class Item:
+    """
+    Item class representing collectible objects scattered around the map.
+    """
+    
+    def __init__(self, item_type, grid_x, grid_y):
+        """
+        Initialize an item with its type and grid position.
+        
+        Args:
+            item_type (int): The type of item (from ItemType class)
+            grid_x (int): Grid x position
+            grid_y (int): Grid y position
+        """
+        self.item_type = item_type
+        self.grid_x = grid_x
+        self.grid_y = grid_y
+        self.pixel_x = grid_x * TILE_SIZE + TILE_SIZE // 4  # Center in tile
+        self.pixel_y = grid_y * TILE_SIZE + TILE_SIZE // 4
+        self.size = TILE_SIZE // 2  # Items are smaller than tiles
+        self.collected = False
+        
+        # Visual properties
+        self.color = ItemType.COLORS.get(item_type, (255, 255, 255))
+        self.name = ItemType.NAMES.get(item_type, "Unknown Item")
+        self.description = ItemType.DESCRIPTIONS.get(item_type, "A mysterious item")
+        
+        # Animation properties for visual appeal
+        self.bob_offset = 0.0
+        self.bob_speed = 3.0
+        self.glow_alpha = 128
+        
+    def update(self, dt):
+        """
+        Update item animation (bobbing effect).
+        
+        Args:
+            dt (float): Delta time in seconds
+        """
+        if not self.collected:
+            self.bob_offset += self.bob_speed * dt
+    
+    def draw(self, screen, camera=None):
+        """
+        Draw the item on the screen with visual effects.
+        
+        Args:
+            screen: Pygame screen surface to draw on
+            camera: Optional camera for coordinate transformation
+        """
+        if self.collected:
+            return
+        
+        # Calculate screen position
+        if camera:
+            screen_x, screen_y = camera.world_to_screen(self.pixel_x, self.pixel_y)
+        else:
+            screen_x, screen_y = self.pixel_x, self.pixel_y
+        
+        # Add bobbing animation
+        import math
+        bob_y = screen_y + math.sin(self.bob_offset) * 3
+        
+        # Draw glow effect
+        glow_surface = pygame.Surface((self.size + 10, self.size + 10), pygame.SRCALPHA)
+        glow_color = (*self.color, 64)
+        pygame.draw.circle(glow_surface, glow_color, 
+                         (self.size // 2 + 5, self.size // 2 + 5), 
+                         self.size // 2 + 5)
+        screen.blit(glow_surface, (int(screen_x - 5), int(bob_y - 5)))
+        
+        # Draw item based on type
+        if self.item_type == ItemType.POTION:
+            self._draw_potion(screen, int(screen_x), int(bob_y))
+        elif self.item_type == ItemType.SCROLL:
+            self._draw_scroll(screen, int(screen_x), int(bob_y))
+        elif self.item_type == ItemType.KEY:
+            self._draw_key(screen, int(screen_x), int(bob_y))
+        else:
+            # Fallback: simple colored circle
+            pygame.draw.circle(screen, self.color, 
+                             (int(screen_x + self.size // 2), int(bob_y + self.size // 2)), 
+                             self.size // 2)
+    
+    def _draw_potion(self, screen, x, y):
+        """Draw a health potion."""
+        # Bottle body
+        bottle_rect = pygame.Rect(x + 6, y + 8, self.size - 12, self.size - 16)
+        pygame.draw.rect(screen, (200, 200, 200), bottle_rect, border_radius=3)
+        
+        # Liquid inside
+        liquid_rect = pygame.Rect(x + 8, y + 10, self.size - 16, self.size - 20)
+        pygame.draw.rect(screen, self.color, liquid_rect, border_radius=2)
+        
+        # Cork/cap
+        cap_rect = pygame.Rect(x + 8, y + 4, self.size - 16, 6)
+        pygame.draw.rect(screen, (139, 69, 19), cap_rect, border_radius=2)
+    
+    def _draw_scroll(self, screen, x, y):
+        """Draw a magic scroll."""
+        # Scroll body
+        scroll_rect = pygame.Rect(x + 4, y + 6, self.size - 8, self.size - 12)
+        pygame.draw.rect(screen, (245, 245, 220), scroll_rect, border_radius=2)
+        
+        # Scroll ends
+        pygame.draw.circle(screen, (139, 69, 19), (x + 4, y + self.size // 2), 3)
+        pygame.draw.circle(screen, (139, 69, 19), (x + self.size - 4, y + self.size // 2), 3)
+        
+        # Magic runes (simple lines)
+        pygame.draw.line(screen, self.color, 
+                        (x + 8, y + 10), (x + self.size - 8, y + 10), 2)
+        pygame.draw.line(screen, self.color, 
+                        (x + 8, y + 14), (x + self.size - 12, y + 14), 2)
+        pygame.draw.line(screen, self.color, 
+                        (x + 8, y + 18), (x + self.size - 8, y + 18), 2)
+    
+    def _draw_key(self, screen, x, y):
+        """Draw a golden key."""
+        # Key shaft
+        shaft_rect = pygame.Rect(x + 4, y + self.size // 2 - 2, self.size - 12, 4)
+        pygame.draw.rect(screen, self.color, shaft_rect, border_radius=1)
+        
+        # Key head (circular)
+        pygame.draw.circle(screen, self.color, 
+                         (x + self.size - 8, y + self.size // 2), 6)
+        pygame.draw.circle(screen, (0, 0, 0), 
+                         (x + self.size - 8, y + self.size // 2), 3)
+        
+        # Key teeth
+        teeth_points = [
+            (x + 6, y + self.size // 2 - 2),
+            (x + 6, y + self.size // 2 - 6),
+            (x + 10, y + self.size // 2 - 6),
+            (x + 10, y + self.size // 2 - 4),
+            (x + 14, y + self.size // 2 - 4),
+            (x + 14, y + self.size // 2 + 2)
+        ]
+        pygame.draw.polygon(screen, self.color, teeth_points)
+    
+    def get_bounds(self):
+        """
+        Get the bounding rectangle for collision detection.
+        
+        Returns:
+            pygame.Rect: The item's bounding rectangle
+        """
+        return pygame.Rect(self.pixel_x, self.pixel_y, self.size, self.size)
+    
+    def collect(self):
+        """
+        Mark the item as collected.
+        """
+        self.collected = True
+
+class Inventory:
+    """
+    Inventory class for managing collected items.
+    """
+    
+    def __init__(self, max_slots=20):
+        """
+        Initialize the inventory with a maximum number of slots.
+        
+        Args:
+            max_slots (int): Maximum number of items the inventory can hold
+        """
+        self.max_slots = max_slots
+        self.items = []  # List of collected items
+        self.item_counts = {}  # Dictionary to track item counts by type
+        
+        # Initialize item counts
+        for item_type in [ItemType.POTION, ItemType.SCROLL, ItemType.KEY]:
+            self.item_counts[item_type] = 0
+    
+    def add_item(self, item):
+        """
+        Add an item to the inventory.
+        
+        Args:
+            item (Item): The item to add
+            
+        Returns:
+            bool: True if item was added successfully, False if inventory is full
+        """
+        if len(self.items) >= self.max_slots:
+            return False
+        
+        self.items.append(item)
+        self.item_counts[item.item_type] += 1
+        return True
+    
+    def remove_item(self, item_type, count=1):
+        """
+        Remove items of a specific type from the inventory.
+        
+        Args:
+            item_type (int): The type of item to remove
+            count (int): Number of items to remove
+            
+        Returns:
+            int: Number of items actually removed
+        """
+        removed = 0
+        items_to_remove = []
+        
+        for item in self.items:
+            if item.item_type == item_type and removed < count:
+                items_to_remove.append(item)
+                removed += 1
+        
+        for item in items_to_remove:
+            self.items.remove(item)
+            self.item_counts[item_type] -= 1
+        
+        return removed
+    
+    def get_item_count(self, item_type):
+        """
+        Get the count of a specific item type in the inventory.
+        
+        Args:
+            item_type (int): The type of item to count
+            
+        Returns:
+            int: Number of items of the specified type
+        """
+        return self.item_counts.get(item_type, 0)
+    
+    def get_total_items(self):
+        """
+        Get the total number of items in the inventory.
+        
+        Returns:
+            int: Total number of items
+        """
+        return len(self.items)
+    
+    def is_full(self):
+        """
+        Check if the inventory is full.
+        
+        Returns:
+            bool: True if inventory is full, False otherwise
+        """
+        return len(self.items) >= self.max_slots
+    
+    def get_items_by_type(self, item_type):
+        """
+        Get all items of a specific type from the inventory.
+        
+        Args:
+            item_type (int): The type of items to retrieve
+            
+        Returns:
+            list: List of items of the specified type
+        """
+        return [item for item in self.items if item.item_type == item_type]
+    
+    def clear(self):
+        """
+        Clear all items from the inventory.
+        """
+        self.items.clear()
+        for item_type in self.item_counts:
+            self.item_counts[item_type] = 0
+    
+    def get_summary(self):
+        """
+        Get a summary of items in the inventory.
+        
+        Returns:
+            dict: Dictionary with item types as keys and counts as values
+        """
+        return self.item_counts.copy()
+
 class Camera:
     """
     Camera class for handling viewport and scrolling in larger maps.
@@ -705,6 +1007,13 @@ class Game:
         # Flashlight state
         self.flashlight_enabled = False
         
+        # Inventory system
+        self.inventory = Inventory()
+        
+        # Items on the map
+        self.items = []
+        self._spawn_items()
+        
         # Background color for better contrast
         self.bg_color = (20, 30, 40)  # Dark blue-gray background
     
@@ -760,6 +1069,61 @@ class Game:
         # Last resort: center of screen
         return (WIDTH - PLAYER_SIZE) // 2, (HEIGHT - PLAYER_SIZE) // 2
     
+    def _spawn_items(self):
+        """
+        Spawn items randomly across walkable tiles on the map.
+        """
+        import random
+        
+        # Number of items to spawn
+        num_potions = random.randint(8, 12)
+        num_scrolls = random.randint(5, 8)
+        num_keys = random.randint(3, 5)
+        
+        items_to_spawn = [
+            (ItemType.POTION, num_potions),
+            (ItemType.SCROLL, num_scrolls),
+            (ItemType.KEY, num_keys)
+        ]
+        
+        # Get all walkable positions
+        walkable_positions = []
+        for y in range(self.game_map.height):
+            for x in range(self.game_map.width):
+                if self.game_map.is_walkable(x, y):
+                    # Don't spawn items too close to player spawn point
+                    spawn_x = self.game_map.spawn_point.get('x', 0)
+                    spawn_y = self.game_map.spawn_point.get('y', 0)
+                    distance = ((x - spawn_x) ** 2 + (y - spawn_y) ** 2) ** 0.5
+                    if distance > 3:  # Minimum distance from spawn
+                        walkable_positions.append((x, y))
+        
+        # Spawn items randomly
+        for item_type, count in items_to_spawn:
+            for _ in range(count):
+                if walkable_positions:
+                    pos = random.choice(walkable_positions)
+                    walkable_positions.remove(pos)  # Don't spawn multiple items on same tile
+                    item = Item(item_type, pos[0], pos[1])
+                    self.items.append(item)
+    
+    def _check_item_collection(self):
+        """
+        Check if the player is colliding with any items and collect them.
+        """
+        player_grid_x, player_grid_y = self.player.get_grid_position()
+        
+        for item in self.items[:]:
+            if not item.collected:
+                # Check if player is on the same tile as the item
+                if item.grid_x == player_grid_x and item.grid_y == player_grid_y:
+                    # Collect the item
+                    if self.inventory.add_item(item):
+                        item.collect()
+                        print(f"Collected {item.name}! ({self.inventory.get_item_count(item.item_type)} total)")
+                    else:
+                        print("Inventory is full!")
+    
     def handle_events(self):
         """
         Handle pygame events like window close and key presses.
@@ -808,6 +1172,13 @@ class Game:
         player_center_y = self.player.y + self.player.size // 2
         self.camera.follow_target(player_center_x, player_center_y, map_width, map_height, dt)
         
+        # Update items (animations)
+        for item in self.items:
+            item.update(dt)
+        
+        # Check for item collection
+        self._check_item_collection()
+        
         self.handle_input()
     
     def draw(self):
@@ -822,6 +1193,10 @@ class Game:
         
         # Draw the player with camera
         self.player.draw(self.screen, self.camera)
+        
+        # Draw items with camera
+        for item in self.items:
+            item.draw(self.screen, self.camera)
         
         # Create and apply the flashlight effect
         self._create_flashlight_effect()
@@ -921,6 +1296,97 @@ class Game:
         controls_text = "Use WASD or Arrow Keys to explore | Press F to toggle flashlight"
         controls_surface = font.render(controls_text, True, WHITE)
         self.screen.blit(controls_surface, (10, HEIGHT - 30))
+        
+        # Draw inventory UI panel
+        self._draw_inventory_ui()
+    
+    def _draw_inventory_ui(self):
+        """
+        Draw the inventory UI panel showing collected items.
+        """
+        # Inventory panel dimensions and position
+        panel_width = 250
+        panel_height = 150
+        panel_x = WIDTH - panel_width - 10
+        panel_y = 10
+        
+        # Draw inventory panel background
+        panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+        panel_surface.fill((0, 0, 0, 180))  # Semi-transparent black
+        pygame.draw.rect(panel_surface, WHITE, (0, 0, panel_width, panel_height), 2)
+        self.screen.blit(panel_surface, (panel_x, panel_y))
+        
+        # Draw inventory title
+        font = pygame.font.Font(None, 24)
+        title_surface = font.render("Inventory", True, WHITE)
+        self.screen.blit(title_surface, (panel_x + 10, panel_y + 10))
+        
+        # Draw inventory stats
+        stats_text = f"{self.inventory.get_total_items()}/{self.inventory.max_slots} items"
+        stats_surface = font.render(stats_text, True, YELLOW)
+        self.screen.blit(stats_surface, (panel_x + panel_width - 80, panel_y + 10))
+        
+        # Draw item counts with icons
+        item_font = pygame.font.Font(None, 20)
+        y_offset = 40
+        
+        for item_type in [ItemType.POTION, ItemType.SCROLL, ItemType.KEY]:
+            count = self.inventory.get_item_count(item_type)
+            name = ItemType.NAMES[item_type]
+            color = ItemType.COLORS[item_type]
+            
+            # Draw item icon (small version)
+            icon_size = 20
+            icon_x = panel_x + 15
+            icon_y = panel_y + y_offset
+            
+            if item_type == ItemType.POTION:
+                # Small potion icon
+                pygame.draw.rect(self.screen, (200, 200, 200), 
+                               (icon_x + 3, icon_y + 4, icon_size - 6, icon_size - 8), border_radius=2)
+                pygame.draw.rect(self.screen, color, 
+                               (icon_x + 4, icon_y + 5, icon_size - 8, icon_size - 10), border_radius=1)
+                pygame.draw.rect(self.screen, (139, 69, 19), 
+                               (icon_x + 4, icon_y + 2, icon_size - 8, 3), border_radius=1)
+            
+            elif item_type == ItemType.SCROLL:
+                # Small scroll icon
+                pygame.draw.rect(self.screen, (245, 245, 220), 
+                               (icon_x + 2, icon_y + 3, icon_size - 4, icon_size - 6), border_radius=1)
+                pygame.draw.circle(self.screen, (139, 69, 19), (icon_x + 2, icon_y + icon_size // 2), 2)
+                pygame.draw.circle(self.screen, (139, 69, 19), (icon_x + icon_size - 2, icon_y + icon_size // 2), 2)
+                pygame.draw.line(self.screen, color, 
+                               (icon_x + 4, icon_y + 6), (icon_x + icon_size - 4, icon_y + 6), 1)
+                pygame.draw.line(self.screen, color, 
+                               (icon_x + 4, icon_y + 9), (icon_x + icon_size - 6, icon_y + 9), 1)
+            
+            elif item_type == ItemType.KEY:
+                # Small key icon
+                pygame.draw.rect(self.screen, color, 
+                               (icon_x + 2, icon_y + icon_size // 2 - 1, icon_size - 6, 2), border_radius=1)
+                pygame.draw.circle(self.screen, color, 
+                               (icon_x + icon_size - 4, icon_y + icon_size // 2), 3)
+                pygame.draw.circle(self.screen, (0, 0, 0), 
+                               (icon_x + icon_size - 4, icon_y + icon_size // 2), 1)
+                # Key teeth
+                pygame.draw.rect(self.screen, color, (icon_x + 3, icon_y + icon_size // 2 - 3, 2, 3))
+                pygame.draw.rect(self.screen, color, (icon_x + 6, icon_y + icon_size // 2 - 2, 2, 2))
+            
+            # Draw item count and name
+            count_text = f"{count}x {name}"
+            text_color = WHITE if count > 0 else (128, 128, 128)
+            count_surface = item_font.render(count_text, True, text_color)
+            self.screen.blit(count_surface, (icon_x + icon_size + 10, icon_y + 2))
+            
+            y_offset += 25
+        
+        # Draw inventory instructions
+        if self.inventory.get_total_items() == 0:
+            instruction_text = "Walk over items to collect them"
+            instruction_surface = item_font.render(instruction_text, True, (128, 128, 128))
+            text_rect = instruction_surface.get_rect()
+            text_x = panel_x + (panel_width - text_rect.width) // 2
+            self.screen.blit(instruction_surface, (text_x, panel_y + panel_height - 30))
     
     def run(self):
         """
