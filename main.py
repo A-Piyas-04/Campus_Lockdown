@@ -205,24 +205,42 @@ class Map:
  
 class Player:
     """
-    Player class representing the controllable sprite character with tile-based movement.
+    Player class representing a controllable sprite character with smooth grid-based movement.
     """
     
     def __init__(self, x, y, game_map=None):
         """
-        Initialize the player at the given position.
+        Initialize the player with grid position and optional map reference.
         
         Args:
-            x (int): Initial x position
-            y (int): Initial y position
+            x (int): Initial x position in pixels (will be converted to grid)
+            y (int): Initial y position in pixels (will be converted to grid)
             game_map (Map): Reference to the game map for collision detection
         """
-        self.x = float(x)  # Use float for smoother movement
-        self.y = float(y)
         self.size = PLAYER_SIZE
         self.speed = PLAYER_SPEED
         self.color = BLUE
         self.game_map = game_map
+        
+        # Convert pixel coordinates to grid coordinates
+        if game_map:
+            self.grid_x, self.grid_y = game_map.pixel_to_grid(x, y)
+        else:
+            self.grid_x = x // TILE_SIZE
+            self.grid_y = y // TILE_SIZE
+        
+        # Grid position (logical position)
+        self.target_grid_x = self.grid_x
+        self.target_grid_y = self.grid_y
+        
+        # Pixel position for rendering (can be between grid positions during animation)
+        self.x = float(self.grid_x * TILE_SIZE)
+        self.y = float(self.grid_y * TILE_SIZE)
+        
+        # Animation properties
+        self.is_moving = False
+        self.move_progress = 0.0
+        self.animation_speed = 8.0  # Higher = faster animation
         
         # Load player sprite (fallback to colored rectangle if sprite fails)
         self.sprite = None
@@ -274,48 +292,80 @@ class Player:
     
     def move(self, dx, dy):
         """
-        Move the player by the given delta values with tile-based collision detection.
-        Ensures the player stays within screen boundaries and on walkable tiles.
+        Initiate smooth movement to adjacent tile with collision detection.
         
         Args:
-            dx (float): Change in x position (-1, 0, or 1)
-            dy (float): Change in y position (-1, 0, or 1)
+            dx (int): Direction in x (-1, 0, or 1)
+            dy (int): Direction in y (-1, 0, or 1)
         """
-        # Calculate new position with smooth movement
-        new_x = self.x + (dx * self.speed)
-        new_y = self.y + (dy * self.speed)
+        # Don't start new movement if already moving
+        if self.is_moving:
+            return
         
-        # Keep player within screen boundaries
-        new_x = max(0, min(new_x, WIDTH - self.size))
-        new_y = max(0, min(new_y, HEIGHT - self.size))
+        # Only allow movement in cardinal directions (no diagonal)
+        if dx != 0 and dy != 0:
+            return
         
-        # Check tile-based collision if map is available
+        # Only allow movement of one tile at a time
+        if abs(dx) > 1 or abs(dy) > 1:
+            return
+        
+        # Calculate new grid position
+        new_grid_x = self.target_grid_x + dx
+        new_grid_y = self.target_grid_y + dy
+        
+        # Check bounds
         if self.game_map:
-            # Check if the new position is on a walkable tile
-            # We check multiple points of the player sprite for better collision
-            player_corners = [
-                (new_x, new_y),  # Top-left
-                (new_x + self.size - 1, new_y),  # Top-right
-                (new_x, new_y + self.size - 1),  # Bottom-left
-                (new_x + self.size - 1, new_y + self.size - 1)  # Bottom-right
-            ]
+            if (new_grid_x < 0 or new_grid_x >= self.game_map.width or 
+                new_grid_y < 0 or new_grid_y >= self.game_map.height):
+                return
             
-            # Check if all corners are on walkable tiles
-            can_move = True
-            for corner_x, corner_y in player_corners:
-                grid_x, grid_y = self.game_map.pixel_to_grid(corner_x, corner_y)
-                if not self.game_map.is_walkable(grid_x, grid_y):
-                    can_move = False
-                    break
-            
-            # Only move if the new position is valid
-            if can_move:
-                self.x = new_x
-                self.y = new_y
+            # Check if the new position is walkable
+            if not self.game_map.is_walkable(new_grid_x, new_grid_y):
+                return
         else:
-            # Fallback to simple boundary checking if no map
-            self.x = new_x
-            self.y = new_y
+            # Fallback: basic boundary checking without map
+            if (new_grid_x < 0 or new_grid_x >= WIDTH // TILE_SIZE or
+                new_grid_y < 0 or new_grid_y >= HEIGHT // TILE_SIZE):
+                return
+        
+        # Start smooth movement animation
+        self.target_grid_x = new_grid_x
+        self.target_grid_y = new_grid_y
+        self.is_moving = True
+        self.move_progress = 0.0
+    
+    def update(self, dt):
+        """
+        Update player animation and position.
+        
+        Args:
+            dt (float): Delta time in seconds
+        """
+        if self.is_moving:
+            # Update animation progress
+            self.move_progress += self.animation_speed * dt
+            
+            if self.move_progress >= 1.0:
+                # Animation complete
+                self.move_progress = 1.0
+                self.is_moving = False
+                self.grid_x = self.target_grid_x
+                self.grid_y = self.target_grid_y
+            
+            # Interpolate between current and target positions
+            start_x = self.grid_x * TILE_SIZE
+            start_y = self.grid_y * TILE_SIZE
+            target_x = self.target_grid_x * TILE_SIZE
+            target_y = self.target_grid_y * TILE_SIZE
+            
+            # Smooth interpolation (easing)
+            t = self.move_progress
+            # Apply easing function for smoother animation
+            eased_t = t * t * (3.0 - 2.0 * t)  # Smoothstep function
+            
+            self.x = start_x + (target_x - start_x) * eased_t
+            self.y = start_y + (target_y - start_y) * eased_t
     
     def set_map(self, game_map):
         """
@@ -328,16 +378,12 @@ class Player:
     
     def get_grid_position(self):
         """
-        Get the player's current grid position (center of sprite).
+        Get the player's current logical grid position.
         
         Returns:
             tuple: (grid_x, grid_y) coordinates
         """
-        center_x = self.x + self.size // 2
-        center_y = self.y + self.size // 2
-        if self.game_map:
-            return self.game_map.pixel_to_grid(center_x, center_y)
-        return (0, 0)
+        return (self.target_grid_x, self.target_grid_y)
     
     def draw(self, screen):
         """
@@ -437,7 +483,7 @@ class Game:
     
     def handle_events(self):
         """
-        Handle all pygame events including quit and key presses.
+        Handle pygame events like window close and key presses.
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -448,31 +494,30 @@ class Game:
     
     def handle_input(self):
         """
-        Handle continuous key input for player movement.
+        Handle continuous key input for smooth tile-based player movement.
         """
         keys = pygame.key.get_pressed()
         
-        # Calculate movement deltas based on pressed keys
-        dx = 0
-        dy = 0
-        
+        # Handle movement with arrow keys or WASD
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            dx = -1
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            dx = 1
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
-            dy = -1
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            dy = 1
-        
-        # Move the player
-        self.player.move(dx, dy)
+            self.player.move(-1, 0)
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            self.player.move(1, 0)
+        elif keys[pygame.K_UP] or keys[pygame.K_w]:
+            self.player.move(0, -1)
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            self.player.move(0, 1)
     
     def update(self):
         """
-        Update game state. Currently just handles input.
-        This method can be extended for game logic updates.
+        Update game state and player animation.
         """
+        # Calculate delta time in seconds
+        dt = self.clock.get_time() / 1000.0
+        
+        # Update player animation
+        self.player.update(dt)
+        
         self.handle_input()
     
     def draw(self):
