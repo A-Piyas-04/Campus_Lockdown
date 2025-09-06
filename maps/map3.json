@@ -11,21 +11,22 @@
     "height": 10
   },
   "tiles": [
-    "WWWWWWWWWWWWWWW",
-    "W.............W",
-    "W.FFFF.FFFF...W",
-    "W.F..F.F..F...W",
-    "W.F..F.F..F...W",
-    "W.FFFF.FFFF...W",
-    "W.............W",
-    "W...FFFFF.....W",
-    "W.............W",
-    "WWWWWWWWWWWWWWW"
+    "VVVVVVVVVVVVVVV",
+    "V.P...........V",
+    "V.RRRR.PPPP...V",
+    "V.R..R.P..P...V",
+    "V.R..R.P..P...V",
+    "V.RRRR.PPPP...V",
+    "V.............V",
+    "V...RRRRR.....V",
+    "V............EV",
+    "VVVVVVVVVVVVVVV"
   ],
   "tile_legend": {
-    "W": "WALL",
+    "V": "CAVE_WALL",
     ".": "FLOOR",
-    "F": "BUILDING",
+    "R": "ROCK",
+    "P": "WATER_POOL",
     "S": "PLAYER_SPAWN",
     "E": "EXIT"
   },

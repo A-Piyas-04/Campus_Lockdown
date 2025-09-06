@@ -45,6 +45,14 @@ class TileType:
     BUILDING = 6
     PLAYER_SPAWN = 7
     EXIT = 8
+    LAKE = 9
+    GREEN_FIELD = 10
+    LIBRARY = 11
+    DORMITORY = 12
+    CAFETERIA = 13
+    ROCK = 14
+    CAVE_WALL = 15
+    WATER_POOL = 16
 
 # Tile colors
 TILE_COLORS = {
@@ -57,6 +65,14 @@ TILE_COLORS = {
     TileType.BUILDING: (101, 67, 33),  # Brown
     TileType.PLAYER_SPAWN: (255, 255, 0),  # Yellow
     TileType.EXIT: (255, 0, 255),      # Magenta
+    TileType.LAKE: (0, 100, 200),      # Deep Blue
+    TileType.GREEN_FIELD: (124, 252, 0),  # Lawn Green
+    TileType.LIBRARY: (160, 82, 45),   # Saddle Brown
+    TileType.DORMITORY: (220, 20, 60), # Crimson
+    TileType.CAFETERIA: (255, 165, 0), # Orange
+    TileType.ROCK: (128, 128, 128),    # Gray
+    TileType.CAVE_WALL: (64, 64, 64),  # Dark Gray
+    TileType.WATER_POOL: (72, 61, 139) # Dark Slate Blue
 }
 
 # Tile character mapping for JSON maps
@@ -68,11 +84,20 @@ TILE_CHARS = {
     '.': TileType.FLOOR,
     'P': TileType.PLAYER_SPAWN,
     'E': TileType.EXIT,
-    ' ': TileType.EMPTY
+    ' ': TileType.EMPTY,
+    '#': TileType.WALL,
+    'L': TileType.LAKE,
+    'F': TileType.GREEN_FIELD,
+    'I': TileType.LIBRARY,
+    'D': TileType.DORMITORY,
+    'C': TileType.CAFETERIA,
+    'R': TileType.ROCK,
+    'V': TileType.CAVE_WALL,
+    'O': TileType.WATER_POOL
 }
 
 # Walkable tiles (tiles the player can move on)
-WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.FLOOR, TileType.PLAYER_SPAWN, TileType.EXIT}
+WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.FLOOR, TileType.PLAYER_SPAWN, TileType.EXIT, TileType.GREEN_FIELD}
 
 class Tile:
     """
@@ -315,7 +340,7 @@ class MapManager:
         transitions = map_info['transitions']
         
         for transition in transitions:
-            pos = transition['position']
+            pos = transition['from_position']
             if pos['x'] == player_x and pos['y'] == player_y:
                 return transition
         
@@ -793,8 +818,8 @@ class Game:
         
         if transition:
             # Perform map transition
-            target_map = transition['target_map']
-            target_spawn = transition['target_spawn']
+            target_map = transition['to_map']
+            target_spawn = transition['to_spawn']
             
             new_map, spawn_pos = self.map_manager.switch_map(target_map, target_spawn)
             if new_map and spawn_pos:
@@ -874,7 +899,15 @@ class Game:
                     TileType.FLOOR: "Floor",
                     TileType.BUILDING: "Building",
                     TileType.PLAYER_SPAWN: "Spawn Point",
-                    TileType.EXIT: "Exit"
+                    TileType.EXIT: "Exit",
+                    TileType.LAKE: "Lake",
+                    TileType.GREEN_FIELD: "Green Field",
+                    TileType.LIBRARY: "Library",
+                    TileType.DORMITORY: "Dormitory",
+                    TileType.CAFETERIA: "Cafeteria",
+                    TileType.ROCK: "Rock",
+                    TileType.CAVE_WALL: "Cave Wall",
+                    TileType.WATER_POOL: "Water Pool"
                 }.get(current_tile.tile_type, "Unknown")
                 tile_text = f"Current Tile: {tile_name}"
                 tile_surface = small_font.render(tile_text, True, YELLOW)
