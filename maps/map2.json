@@ -1,17 +1,8 @@
 {
-  "metadata": {
-    "id": "map2",
-    "name": "Forest Path",
-    "description": "A winding path through the campus forest",
-    "version": "1.0",
-    "author": "Game Developer"
-  },
-  "dimensions": {
-    "width": 14,
-    "height": 10
-  },
+  "metadata": { "id": "map2", "name": "Forest Path", "description": "A dense forest trail", "version": "2.0", "author": "Game Developer" },
+  "dimensions": { "width": 14, "height": 10 },
   "tiles": [
-    "TTTTTTTTTTTTTT",
+    "TTTTTTTETTTTTT",
     "T.LLLLL.....PT",
     "T.LLLLL.TTTT.T",
     "T.LLLLL.T..T.T",
@@ -20,56 +11,24 @@
     "E.T..T.......T",
     "T.T..T..LLL..T",
     "T.TTTT..LLL.ET",
-    "TTTTTTTTTTTTTT"
+    "TTTTTTTETTTTTT"
   ],
   "tile_legend": {
-    "G": "GRASS",
-    "B": "BUILDING",
+    "T": "TREE",
+    "L": "LAKE",
     ".": "FLOOR",
     "P": "PLAYER_SPAWN",
-    "E": "EXIT",
-    "W": "WATER",
-    "T": "TREE",
-    "L": "LAKE"
+    "E": "EXIT"
   },
   "spawn_points": {
-    "default": {
-      "x": 12,
-      "y": 1,
-      "description": "Forest entrance"
-    },
-    "from_map1": {
-      "x": 1,
-      "y": 6,
-      "description": "Coming from campus courtyard"
-    },
-    "from_map3": {
-      "x": 12,
-      "y": 8,
-      "description": "Coming from underground cave"
-    }
+    "default": { "x": 12, "y": 1, "description": "Forest entrance" },
+    "from_map1": { "x": 0, "y": 6, "description": "From courtyard (west)" },
+    "from_map3": { "x": 13, "y": 6, "description": "From cave (east)" },
+    "from_map6": { "x": 6, "y": 9, "description": "From lab (south)" }
   },
   "transitions": [
-    {
-      "from_position": {
-        "x": 0,
-        "y": 6
-      },
-      "to_map": "map1",
-      "to_spawn": "from_map2",
-      "description": "Return to campus courtyard"
-    },
-    {
-      "from_position": {
-        "x": 13,
-        "y": 8
-      },
-      "to_map": "map3",
-      "to_spawn": "from_map2",
-      "description": "Enter underground cave"
-    }
-  ],
-  "objects": [],
-  "npcs": [],
-  "items": []
+    { "from_position": { "x": 0, "y": 6 }, "to_map": "map1", "to_spawn": "from_map2" },
+    { "from_position": { "x": 13, "y": 6 }, "to_map": "map3", "to_spawn": "from_map2" },
+    { "from_position": { "x": 6, "y": 9 }, "to_map": "map6", "to_spawn": "from_map2" }
+  ]
 }

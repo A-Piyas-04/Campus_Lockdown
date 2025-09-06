@@ -15,7 +15,8 @@ import os
 pygame.init()
 
 # Game constants
-WIDTH = 1000
+# Set windowed mode dimensions
+WIDTH = 1200
 HEIGHT = 800
 FPS = 60
 
@@ -27,12 +28,13 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 
-# Player constants
-PLAYER_SIZE = 50
-PLAYER_SPEED = 6
+# Tile constants - Calculate tile size to fit window
+# Assuming typical map size of 16x12 tiles with some UI space
+TILE_SIZE = min(WIDTH // 16, (HEIGHT - 100) // 12)  # Leave 100px for UI
 
-# Tile constants
-TILE_SIZE = 50
+# Player constants
+PLAYER_SIZE = int(TILE_SIZE * 0.8)  # Player is 80% of tile size
+PLAYER_SPEED = 6
 
 # Tile types
 class TileType:
@@ -698,7 +700,7 @@ class Game:
         """
         Initialize the game with screen, clock, MapManager, and player.
         """
-        # Set up the display
+        # Set up the display in windowed mode
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Adventure Quest - JSON Map System")
         

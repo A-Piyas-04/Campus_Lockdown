@@ -2,16 +2,13 @@
   "metadata": {
     "id": "map1",
     "name": "Campus Courtyard",
-    "description": "The main courtyard area of the campus",
-    "version": "1.0",
+    "description": "The central gathering place of the campus",
+    "version": "2.0",
     "author": "Game Developer"
   },
-  "dimensions": {
-    "width": 13,
-    "height": 11
-  },
+  "dimensions": { "width": 13, "height": 11 },
   "tiles": [
-    "FFFFFFFFFFFFF",
+    "FFFFFFEFFFFFF",
     "F###L###L###F",
     "F#I.L.C.L.D#F",
     "F#I.LLL.L.D#F",
@@ -21,7 +18,7 @@
     "F.FFFFFFFF..F",
     "F..........EF",
     "F###########F",
-    "FFFFFFFFFFFFF"
+    "FFFFFFEFFFFFF"
   ],
   "tile_legend": {
     "F": "GREEN_FIELD",
@@ -35,38 +32,12 @@
     "E": "EXIT"
   },
   "spawn_points": {
-    "default": {
-      "x": 6,
-      "y": 6,
-      "description": "Campus courtyard"
-    },
-    "from_map2": {
-      "x": 12,
-      "y": 8,
-      "description": "Coming from forest path"
-    }
+    "default": { "x": 6, "y": 6, "description": "Courtyard center" },
+    "from_map5": { "x": 6, "y": 10, "description": "From garden (south)" },
+    "from_map2": { "x": 12, "y": 6, "description": "From forest (east)" }
   },
   "transitions": [
-    {
-      "from_position": {
-        "x": 12,
-        "y": 6
-      },
-      "to_map": "map2",
-      "to_spawn": "from_map1",
-      "description": "Enter forest path"
-    },
-    {
-      "from_position": {
-        "x": 11,
-        "y": 8
-      },
-      "to_map": "map2",
-      "to_spawn": "from_map1",
-      "description": "Alternative path to forest"
-    }
-  ],
-  "objects": [],
-  "npcs": [],
-  "items": []
+    { "from_position": { "x": 6, "y": 10 }, "to_map": "map5", "to_spawn": "from_map1" },
+    { "from_position": { "x": 12, "y": 6 }, "to_map": "map2", "to_spawn": "from_map1" }
+  ]
 }

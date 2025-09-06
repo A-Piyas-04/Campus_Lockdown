@@ -1,0 +1,27 @@
+{
+  "metadata": { "id": "map5", "name": "Botanical Garden", "description": "Beautiful plants and trees", "version": "2.0", "author": "Game Developer" },
+  "dimensions": { "width": 13, "height": 11 },
+  "tiles": [
+    "TTTTTTTTTTTTT",
+    "T...........T",
+    "T.FFF.LLL.F.T",
+    "T.F.F.L.L.F.T",
+    "T.FFF.LLL.F.T",
+    "T...........T",
+    "E.....P.....T",
+    "T.FFFFF.FFF.T",
+    "T.F...F.F.F.E",
+    "T.FFFFF.FFF.T",
+    "TTTTTTTTTTTTT"
+  ],
+  "tile_legend": { "T": "TREE", "F": "GREEN_FIELD", "L": "LAKE", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "spawn_points": {
+    "default": { "x": 6, "y": 6, "description": "Garden center" },
+    "from_map1": { "x": 6, "y": 0, "description": "From courtyard (north)" },
+    "from_map6": { "x": 12, "y": 6, "description": "From lab (east)" }
+  },
+  "transitions": [
+    { "from_position": { "x": 6, "y": 0 }, "to_map": "map1", "to_spawn": "from_map5" },
+    { "from_position": { "x": 12, "y": 6 }, "to_map": "map6", "to_spawn": "from_map5" }
+  ]
+}

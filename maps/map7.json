@@ -1,0 +1,30 @@
+{
+  "metadata": { "id": "map7", "name": "Dormitory Complex", "description": "Where students live", "version": "2.0", "author": "Game Developer" },
+  "dimensions": { "width": 15, "height": 12 },
+  "tiles": [
+    "FFFFFFF.FFFFFFF",
+    "F.............F",
+    "F.DDD..DDD..D.F",
+    "F.D.D..D.D..D.F",
+    "F.DDD..DDD..D.F",
+    "F.............F",
+    "F.............F",
+    "E.....P.......E",
+    "F.DDD..DDD..D.F",
+    "F.D.D..D.D..D.F",
+    "F.DDD..DDD..D.F",
+    "FFFFFFFFFFFFFFF"
+  ],
+  "tile_legend": { "F": "GREEN_FIELD", "D": "DORMITORY", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "spawn_points": {
+    "default": { "x": 7, "y": 7, "description": "Dorm center" },
+    "from_map3": { "x": 7, "y": 0, "description": "From cave (north)" },
+    "from_map6": { "x": 0, "y": 6, "description": "From lab (west)" },
+    "from_map8": { "x": 14, "y": 6, "description": "From sports (east)" }
+  },
+  "transitions": [
+    { "from_position": { "x": 7, "y": 0 }, "to_map": "map3", "to_spawn": "from_map7" },
+    { "from_position": { "x": 0, "y": 6 }, "to_map": "map6", "to_spawn": "from_map7" },
+    { "from_position": { "x": 14, "y": 6 }, "to_map": "map8", "to_spawn": "from_map7" }
+  ]
+}

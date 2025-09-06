@@ -1,0 +1,26 @@
+{
+  "metadata": { "id": "map4", "name": "Desert Outskirts", "description": "Hot sandy edges of campus", "version": "2.0", "author": "Game Developer" },
+  "dimensions": { "width": 12, "height": 10 },
+  "tiles": [
+    "SSSSSSESSSSS",
+    "S..........S",
+    "S.RRR..RRR.S",
+    "S.R.R..R.R.S",
+    "S.RRR..RRR.S",
+    "S..........S",
+    "E.........PS",
+    "S..RRRRRR..S",
+    "S..........E",
+    "SSSSSSSSSSSS"
+  ],
+  "tile_legend": { "S": "SAND", "R": "ROCK", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "spawn_points": {
+    "default": { "x": 6, "y": 1, "description": "Desert entrance" },
+    "from_map3": { "x": 0, "y": 6, "description": "From cave (west)" },
+    "from_map8": { "x": 6, "y": 9, "description": "From sports (south)" }
+  },
+  "transitions": [
+    { "from_position": { "x": 0, "y": 6 }, "to_map": "map3", "to_spawn": "from_map4" },
+    { "from_position": { "x": 6, "y": 9 }, "to_map": "map8", "to_spawn": "from_map4" }
+  ]
+}

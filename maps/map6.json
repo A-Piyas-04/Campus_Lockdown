@@ -1,0 +1,28 @@
+{
+  "metadata": { "id": "map6", "name": "Research Lab", "description": "Modern science facility", "version": "2.0", "author": "Game Developer" },
+  "dimensions": { "width": 14, "height": 10 },
+  "tiles": [
+    "#######E######",
+    "#............#",
+    "#.LLL..LLL.L.#",
+    "#.L.L..L.L.L.#",
+    "#.LLL..LLL.L.#",
+    "#............E",
+    "E.....P......#",
+    "#.LLLLLLLL...#",
+    "#............#",
+    "#######E######"
+  ],
+  "tile_legend": { "#": "WALL", "L": "LAB", ".": "FLOOR", "P": "PLAYER_SPAWN", "E": "EXIT" },
+  "spawn_points": {
+    "default": { "x": 6, "y": 6, "description": "Lab lobby" },
+    "from_map2": { "x": 6, "y": 0, "description": "From forest (north)" },
+    "from_map5": { "x": 0, "y": 6, "description": "From garden (west)" },
+    "from_map7": { "x": 13, "y": 6, "description": "From dorms (east)" }
+  },
+  "transitions": [
+    { "from_position": { "x": 6, "y": 0 }, "to_map": "map2", "to_spawn": "from_map6" },
+    { "from_position": { "x": 0, "y": 6 }, "to_map": "map5", "to_spawn": "from_map6" },
+    { "from_position": { "x": 13, "y": 6 }, "to_map": "map7", "to_spawn": "from_map6" }
+  ]
+}
