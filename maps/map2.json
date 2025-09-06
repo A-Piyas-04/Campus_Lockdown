@@ -1,0 +1,58 @@
+{
+  "metadata": {
+    "id": "map2",
+    "name": "Forest Path",
+    "description": "A winding path through the campus forest",
+    "version": "1.0",
+    "author": "Game Developer"
+  },
+  "dimensions": {
+    "width": 12,
+    "height": 8
+  },
+  "tiles": [
+    "TTTTTTTTTTTT",
+    "T..........T",
+    "T..TTTT....T",
+    "T..T..T....T",
+    "T..T..T....T",
+    "T..TTTT....T",
+    "G..........T",
+    "ETTTTTTTTTGP"
+  ],
+  "tile_legend": {
+    "G": "GRASS",
+    "B": "BUILDING",
+    ".": "FLOOR",
+    "P": "PLAYER_SPAWN",
+    "E": "EXIT",
+    "W": "WATER",
+    "T": "TREE"
+  },
+  "spawn_points": {
+    "default": {"x": 11, "y": 7},
+    "from_map1": {"x": 11, "y": 7},
+    "from_map3": {"x": 11, "y": 1}
+  },
+  "transitions": [
+    {
+      "id": "to_map1",
+      "type": "exit_tile",
+      "position": {"x": 0, "y": 7},
+      "target_map": "map1",
+      "target_spawn": "from_map2",
+      "description": "Return to Campus Courtyard"
+    },
+    {
+      "id": "to_map3",
+      "type": "exit_tile",
+      "position": {"x": 11, "y": 0},
+      "target_map": "map3",
+      "target_spawn": "from_map2",
+      "description": "Enter underground cave"
+    }
+  ],
+  "objects": [],
+  "npcs": [],
+  "items": []
+}

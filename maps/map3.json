@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "map3",
+    "name": "Underground Cave",
+    "description": "A mysterious underground cave system",
+    "version": "1.0",
+    "author": "MapManager System"
+  },
+  "dimensions": {
+    "width": 15,
+    "height": 10
+  },
+  "tiles": [
+    "WWWWWWWWWWWWWWW",
+    "W.............W",
+    "W.FFFF.FFFF...W",
+    "W.F..F.F..F...W",
+    "W.F..F.F..F...W",
+    "W.FFFF.FFFF...W",
+    "W.............W",
+    "W...FFFFF.....W",
+    "W.............W",
+    "WWWWWWWWWWWWWWW"
+  ],
+  "tile_legend": {
+    "W": "WALL",
+    ".": "FLOOR",
+    "F": "BUILDING",
+    "S": "PLAYER_SPAWN",
+    "E": "EXIT"
+  },
+  "spawn_points": {
+    "default": {
+      "x": 1,
+      "y": 1,
+      "description": "Cave entrance"
+    },
+    "from_map2": {
+      "x": 13,
+      "y": 8,
+      "description": "Coming from forest path"
+    }
+  },
+  "transitions": [
+    {
+      "from_position": {
+        "x": 0,
+        "y": 8
+      },
+      "to_map": "map2",
+      "to_spawn": "from_map3",
+      "description": "Exit to forest path"
+    }
+  ]
+}

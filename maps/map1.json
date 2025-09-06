@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "id": "map1",
+    "name": "Campus Courtyard",
+    "description": "The main courtyard area of the campus",
+    "version": "1.0",
+    "author": "Game Developer"
+  },
+  "dimensions": {
+    "width": 12,
+    "height": 8
+  },
+  "tiles": [
+    "GGGGGGGGGGGG",
+    "GBBBBBBBBGGG",
+    "GB........BG",
+    "GB..P.....BG",
+    "GB........BG",
+    "GB........BG",
+    "GBBBBBBBBBGG",
+    "GGGGGGGGGGGE"
+  ],
+  "tile_legend": {
+    "G": "GRASS",
+    "B": "BUILDING",
+    ".": "FLOOR",
+    "P": "PLAYER_SPAWN",
+    "E": "EXIT",
+    "W": "WATER",
+    "T": "TREE"
+  },
+  "spawn_points": {
+    "default": {"x": 4, "y": 3},
+    "from_map2": {"x": 11, "y": 7}
+  },
+  "transitions": [
+    {
+      "id": "to_map2",
+      "type": "exit_tile",
+      "position": {"x": 11, "y": 7},
+      "target_map": "map2",
+      "target_spawn": "from_map1",
+      "description": "Exit to Forest Path"
+    }
+  ],
+  "objects": [],
+  "npcs": [],
+  "items": []
+}

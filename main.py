@@ -8,6 +8,8 @@ and manages the game loop with a movable player square.
 
 import pygame
 import sys
+import json
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -39,6 +41,10 @@ class TileType:
     WATER = 2
     WALL = 3
     TREE = 4
+    FLOOR = 5
+    BUILDING = 6
+    PLAYER_SPAWN = 7
+    EXIT = 8
 
 # Tile colors
 TILE_COLORS = {
@@ -47,10 +53,26 @@ TILE_COLORS = {
     TileType.WATER: (30, 144, 255),    # Dodger blue
     TileType.WALL: (139, 69, 19),      # Saddle brown
     TileType.TREE: (0, 100, 0),        # Dark green
+    TileType.FLOOR: (160, 160, 160),   # Gray
+    TileType.BUILDING: (101, 67, 33),  # Brown
+    TileType.PLAYER_SPAWN: (255, 255, 0),  # Yellow
+    TileType.EXIT: (255, 0, 255),      # Magenta
+}
+
+# Tile character mapping for JSON maps
+TILE_CHARS = {
+    'G': TileType.GRASS,
+    'W': TileType.WATER,
+    'B': TileType.BUILDING,
+    'T': TileType.TREE,
+    '.': TileType.FLOOR,
+    'P': TileType.PLAYER_SPAWN,
+    'E': TileType.EXIT,
+    ' ': TileType.EMPTY
 }
 
 # Walkable tiles (tiles the player can move on)
-WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS}
+WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.FLOOR, TileType.PLAYER_SPAWN, TileType.EXIT}
 
 class Tile:
     """
@@ -110,6 +132,248 @@ class Tile:
         # Draw tile border for grid visibility
         pygame.draw.rect(screen, (0, 0, 0), 
                         (self.pixel_x, self.pixel_y, TILE_SIZE, TILE_SIZE), 1)
+
+class MapManager:
+    """
+    MapManager class that handles loading, switching, and saving map states.
+    Supports unlimited maps stored in JSON files with persistent player state.
+    """
+    
+    def __init__(self, maps_directory="maps"):
+        """
+        Initialize the MapManager.
+        
+        Args:
+            maps_directory (str): Directory containing map JSON files
+        """
+        self.maps_directory = maps_directory
+        self.loaded_maps = {}  # Cache for loaded maps
+        self.current_map_id = None
+        self.current_map = None
+        self.map_metadata = {}  # Store metadata for all maps
+        
+        # Player persistent state
+        self.player_inventory = []
+        self.player_stats = {
+            "health": 100,
+            "level": 1,
+            "experience": 0,
+            "gold": 0
+        }
+        
+        # Discover available maps
+        self._discover_maps()
+    
+    def _discover_maps(self):
+        """
+        Discover all available map files in the maps directory.
+        """
+        if not os.path.exists(self.maps_directory):
+            print(f"Maps directory '{self.maps_directory}' not found!")
+            return
+        
+        for filename in os.listdir(self.maps_directory):
+            if filename.endswith('.json'):
+                map_id = filename[:-5]  # Remove .json extension
+                try:
+                    with open(os.path.join(self.maps_directory, filename), 'r') as f:
+                        map_data = json.load(f)
+                        self.map_metadata[map_id] = map_data.get('metadata', {})
+                        print(f"Discovered map: {map_id} - {map_data.get('metadata', {}).get('name', 'Unknown')}")
+                except Exception as e:
+                    print(f"Error reading map {filename}: {e}")
+    
+    def load_map(self, map_id):
+        """
+        Load a map from JSON file.
+        
+        Args:
+            map_id (str): The map identifier (filename without .json)
+            
+        Returns:
+            Map: The loaded map instance or None if failed
+        """
+        # Check if map is already loaded
+        if map_id in self.loaded_maps:
+            return self.loaded_maps[map_id]
+        
+        map_file = os.path.join(self.maps_directory, f"{map_id}.json")
+        
+        if not os.path.exists(map_file):
+            print(f"Map file not found: {map_file}")
+            return None
+        
+        try:
+            with open(map_file, 'r') as f:
+                map_data = json.load(f)
+            
+            # Convert JSON map to Map instance
+            game_map = self._create_map_from_json(map_data)
+            
+            # Cache the loaded map
+            self.loaded_maps[map_id] = {
+                'map': game_map,
+                'data': map_data,
+                'spawn_points': map_data.get('spawn_points', {}),
+                'transitions': map_data.get('transitions', [])
+            }
+            
+            print(f"Loaded map: {map_id}")
+            return game_map
+            
+        except Exception as e:
+            print(f"Error loading map {map_id}: {e}")
+            return None
+    
+    def _create_map_from_json(self, map_data):
+        """
+        Create a Map instance from JSON data.
+        
+        Args:
+            map_data (dict): JSON map data
+            
+        Returns:
+            Map: The created map instance
+        """
+        tiles_str = map_data.get('tiles', [])
+        dimensions = map_data.get('dimensions', {})
+        width = dimensions.get('width', len(tiles_str[0]) if tiles_str else 0)
+        height = dimensions.get('height', len(tiles_str))
+        
+        # Convert string tiles to numeric array
+        map_array = []
+        for row_str in tiles_str:
+            row = []
+            for char in row_str:
+                tile_type = TILE_CHARS.get(char, TileType.EMPTY)
+                row.append(tile_type)
+            map_array.append(row)
+        
+        return Map(map_array)
+    
+    def switch_map(self, map_id, spawn_point="default"):
+        """
+        Switch to a different map.
+        
+        Args:
+            map_id (str): The target map identifier
+            spawn_point (str): The spawn point to use on the new map
+            
+        Returns:
+            tuple: (Map instance, spawn_position) or (None, None) if failed
+        """
+        # Load the target map
+        new_map = self.load_map(map_id)
+        if not new_map:
+            return None, None
+        
+        # Update current map
+        self.current_map_id = map_id
+        self.current_map = new_map
+        
+        # Get spawn position
+        map_info = self.loaded_maps[map_id]
+        spawn_points = map_info['spawn_points']
+        spawn_pos = spawn_points.get(spawn_point, spawn_points.get('default', {'x': 0, 'y': 0}))
+        
+        print(f"Switched to map: {map_id} at spawn point: {spawn_point}")
+        return new_map, (spawn_pos['x'], spawn_pos['y'])
+    
+    def get_current_map(self):
+        """
+        Get the currently active map.
+        
+        Returns:
+            Map: The current map instance or None
+        """
+        return self.current_map
+    
+    def get_current_map_id(self):
+        """
+        Get the current map identifier.
+        
+        Returns:
+            str: The current map ID or None
+        """
+        return self.current_map_id
+    
+    def check_transitions(self, player_x, player_y):
+        """
+        Check if the player is at a transition point.
+        
+        Args:
+            player_x (int): Player grid x position
+            player_y (int): Player grid y position
+            
+        Returns:
+            dict: Transition data or None if no transition
+        """
+        if not self.current_map_id or self.current_map_id not in self.loaded_maps:
+            return None
+        
+        map_info = self.loaded_maps[self.current_map_id]
+        transitions = map_info['transitions']
+        
+        for transition in transitions:
+            pos = transition['position']
+            if pos['x'] == player_x and pos['y'] == player_y:
+                return transition
+        
+        return None
+    
+    def get_player_inventory(self):
+        """
+        Get the player's persistent inventory.
+        
+        Returns:
+            list: Player inventory items
+        """
+        return self.player_inventory.copy()
+    
+    def get_player_stats(self):
+        """
+        Get the player's persistent stats.
+        
+        Returns:
+            dict: Player stats
+        """
+        return self.player_stats.copy()
+    
+    def update_player_stats(self, **kwargs):
+        """
+        Update player stats.
+        
+        Args:
+            **kwargs: Stat updates (health=100, level=2, etc.)
+        """
+        for key, value in kwargs.items():
+            if key in self.player_stats:
+                self.player_stats[key] = value
+    
+    def add_to_inventory(self, item):
+        """
+        Add an item to the player's inventory.
+        
+        Args:
+            item: Item to add to inventory
+        """
+        self.player_inventory.append(item)
+    
+    def remove_from_inventory(self, item):
+        """
+        Remove an item from the player's inventory.
+        
+        Args:
+            item: Item to remove from inventory
+            
+        Returns:
+            bool: True if item was removed, False if not found
+        """
+        try:
+            self.player_inventory.remove(item)
+            return True
+        except ValueError:
+            return False
 
 class Map:
     """
@@ -402,26 +666,35 @@ class Player:
 
 class Game:
     """
-    Main game class that manages the game state and loop with tile-based map system.
+    Main game class that manages the game state and loop with MapManager system.
     """
     
     def __init__(self):
         """
-        Initialize the game with screen, clock, map, and player.
+        Initialize the game with screen, clock, MapManager, and player.
         """
         # Set up the display
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Adventure Quest - Tile-Based Edition")
+        pygame.display.set_caption("Adventure Quest - JSON Map System")
         
         # Set up the game clock for consistent FPS
         self.clock = pygame.time.Clock()
         
-        # Create sample map (20x16 tiles to fit 1000x800 screen)
-        self.game_map = self._create_sample_map()
+        # Initialize MapManager
+        self.map_manager = MapManager()
         
-        # Create player at a valid starting position
-        start_x, start_y = self._find_valid_start_position()
-        self.player = Player(start_x, start_y, self.game_map)
+        # Load initial map
+        initial_map, spawn_pos = self.map_manager.switch_map("map1")
+        if not initial_map:
+            # Fallback to sample map if JSON maps fail
+            print("Failed to load JSON maps, creating fallback map...")
+            initial_map = self._create_fallback_map()
+            spawn_pos = self._find_valid_start_position(initial_map)
+        
+        # Create player at spawn position
+        start_x, start_y = spawn_pos if spawn_pos else (0, 0)
+        pixel_x, pixel_y = initial_map.grid_to_pixel(start_x, start_y)
+        self.player = Player(pixel_x, pixel_y, initial_map)
         
         # Game state
         self.running = True
@@ -429,57 +702,50 @@ class Game:
         # Background color for better contrast
         self.bg_color = (20, 30, 40)  # Dark blue-gray background
     
-    def _create_sample_map(self):
+    def _create_fallback_map(self):
         """
-        Create a sample map with different tile types.
+        Create a fallback map if JSON maps fail to load.
         
         Returns:
             Map: The created map instance
         """
-        # Create a 20x16 map (1000x800 pixels / 50 tile size)
+        # Create a simple 12x8 map to match JSON format
         map_data = [
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],  # Wall border
-            [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],  # Grass area
-            [3, 1, 4, 1, 1, 2, 2, 2, 1, 1, 1, 4, 1, 1, 1, 1, 4, 1, 1, 3],  # Trees and water
-            [3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 3],  # Mixed terrain
-            [3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 3],
-            [3, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 3],
-            [3, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 3],
-            [3, 1, 1, 1, 1, 1, 1, 1, 1, 3, 0, 3, 1, 1, 1, 1, 1, 1, 1, 3],  # Building area
-            [3, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 3],
-            [3, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 3],
-            [3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-            [3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 3],
-            [3, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-            [3, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 3],
-            [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],  # Wall border
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # Grass
+            [1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1],  # Wall border
+            [1, 3, 5, 5, 5, 5, 5, 5, 5, 5, 3, 1],  # Floor area
+            [1, 3, 5, 7, 5, 5, 5, 5, 5, 5, 3, 1],  # Player spawn
+            [1, 3, 5, 5, 5, 5, 5, 5, 5, 5, 3, 1],  # Floor area
+            [1, 3, 5, 5, 5, 5, 5, 5, 5, 5, 3, 1],  # Floor area
+            [1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1],  # Wall border
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8],  # Exit
         ]
         return Map(map_data)
     
-    def _find_valid_start_position(self):
+    def _find_valid_start_position(self, game_map):
         """
         Find a valid starting position for the player on a walkable tile.
         
+        Args:
+            game_map (Map): The map to search for valid positions
+        
         Returns:
-            tuple: (x, y) pixel coordinates for player start position
+            tuple: (grid_x, grid_y) grid coordinates for player start position
         """
-        # Try to find a grass tile near the center
-        for y in range(self.game_map.height // 2 - 2, self.game_map.height // 2 + 3):
-            for x in range(self.game_map.width // 2 - 2, self.game_map.width // 2 + 3):
-                if self.game_map.is_walkable(x, y):
-                    pixel_x, pixel_y = self.game_map.grid_to_pixel(x, y)
-                    return pixel_x, pixel_y
+        # Try to find a walkable tile near the center
+        for y in range(game_map.height // 2 - 2, game_map.height // 2 + 3):
+            for x in range(game_map.width // 2 - 2, game_map.width // 2 + 3):
+                if game_map.is_walkable(x, y):
+                    return x, y
         
         # Fallback: find any walkable tile
-        for y in range(self.game_map.height):
-            for x in range(self.game_map.width):
-                if self.game_map.is_walkable(x, y):
-                    pixel_x, pixel_y = self.game_map.grid_to_pixel(x, y)
-                    return pixel_x, pixel_y
+        for y in range(game_map.height):
+            for x in range(game_map.width):
+                if game_map.is_walkable(x, y):
+                    return x, y
         
-        # Last resort: center of screen
-        return (WIDTH - PLAYER_SIZE) // 2, (HEIGHT - PLAYER_SIZE) // 2
+        # Last resort: return (0, 0)
+        return 0, 0
     
     def handle_events(self):
         """
@@ -510,7 +776,7 @@ class Game:
     
     def update(self):
         """
-        Update game state and player animation.
+        Update game state, player animation, and handle map transitions.
         """
         # Calculate delta time in seconds
         dt = self.clock.get_time() / 1000.0
@@ -518,7 +784,35 @@ class Game:
         # Update player animation
         self.player.update(dt)
         
+        # Handle input
         self.handle_input()
+        
+        # Check for map transitions
+        player_grid_pos = self.player.get_grid_position()
+        transition = self.map_manager.check_transitions(player_grid_pos[0], player_grid_pos[1])
+        
+        if transition:
+            # Perform map transition
+            target_map = transition['target_map']
+            target_spawn = transition['target_spawn']
+            
+            new_map, spawn_pos = self.map_manager.switch_map(target_map, target_spawn)
+            if new_map and spawn_pos:
+                # Update player's map reference and position
+                self.player.set_map(new_map)
+                
+                # Move player to new spawn position
+                spawn_x, spawn_y = spawn_pos
+                pixel_x, pixel_y = new_map.grid_to_pixel(spawn_x, spawn_y)
+                self.player.x = float(pixel_x)
+                self.player.y = float(pixel_y)
+                self.player.grid_x = spawn_x
+                self.player.grid_y = spawn_y
+                self.player.target_grid_x = spawn_x
+                self.player.target_grid_y = spawn_y
+                self.player.is_moving = False
+                
+                print(f"Transitioned to {target_map} at spawn {target_spawn}")
     
     def draw(self):
         """
@@ -527,8 +821,10 @@ class Game:
         # Fill the screen with background color
         self.screen.fill(self.bg_color)
         
-        # Draw the map tiles
-        self.game_map.draw(self.screen)
+        # Draw the current map
+        current_map = self.map_manager.get_current_map()
+        if current_map:
+            current_map.draw(self.screen)
         
         # Draw the player
         self.player.draw(self.screen)
@@ -541,38 +837,67 @@ class Game:
     
     def _draw_ui(self):
         """
-        Draw UI elements like position indicator and controls.
+        Draw UI elements including position, map info, player stats, and controls.
         """
         font = pygame.font.Font(None, 24)
+        small_font = pygame.font.Font(None, 20)
+        
+        # Current map information
+        current_map_id = self.map_manager.get_current_map_id()
+        if current_map_id:
+            map_text = f"Current Map: {current_map_id}"
+            map_surface = font.render(map_text, True, GREEN)
+            self.screen.blit(map_surface, (10, 10))
         
         # Player position indicator (both pixel and grid coordinates)
         pixel_pos = f"Pixel: ({int(self.player.x)}, {int(self.player.y)})"
         grid_pos = self.player.get_grid_position()
         grid_text = f"Grid: ({grid_pos[0]}, {grid_pos[1]})"
         
-        pixel_surface = font.render(pixel_pos, True, WHITE)
-        grid_surface = font.render(grid_text, True, WHITE)
+        pixel_surface = small_font.render(pixel_pos, True, WHITE)
+        grid_surface = small_font.render(grid_text, True, WHITE)
         
-        self.screen.blit(pixel_surface, (10, 10))
-        self.screen.blit(grid_surface, (10, 35))
+        self.screen.blit(pixel_surface, (10, 35))
+        self.screen.blit(grid_surface, (10, 55))
         
         # Current tile type indicator
-        current_tile = self.game_map.get_tile(grid_pos[0], grid_pos[1])
-        if current_tile:
-            tile_name = {
-                TileType.EMPTY: "Empty",
-                TileType.GRASS: "Grass", 
-                TileType.WATER: "Water",
-                TileType.WALL: "Wall",
-                TileType.TREE: "Tree"
-            }.get(current_tile.tile_type, "Unknown")
-            tile_text = f"Current Tile: {tile_name}"
-            tile_surface = font.render(tile_text, True, YELLOW)
-            self.screen.blit(tile_surface, (10, 60))
+        current_map = self.map_manager.get_current_map()
+        if current_map:
+            current_tile = current_map.get_tile(grid_pos[0], grid_pos[1])
+            if current_tile:
+                tile_name = {
+                    TileType.EMPTY: "Empty",
+                    TileType.GRASS: "Grass", 
+                    TileType.WATER: "Water",
+                    TileType.WALL: "Wall",
+                    TileType.TREE: "Tree",
+                    TileType.FLOOR: "Floor",
+                    TileType.BUILDING: "Building",
+                    TileType.PLAYER_SPAWN: "Spawn Point",
+                    TileType.EXIT: "Exit"
+                }.get(current_tile.tile_type, "Unknown")
+                tile_text = f"Current Tile: {tile_name}"
+                tile_surface = small_font.render(tile_text, True, YELLOW)
+                self.screen.blit(tile_surface, (10, 75))
+        
+        # Player stats
+        stats = self.map_manager.get_player_stats()
+        stats_y = 100
+        for stat_name, stat_value in stats.items():
+            stat_text = f"{stat_name.title()}: {stat_value}"
+            stat_surface = small_font.render(stat_text, True, WHITE)
+            self.screen.blit(stat_surface, (10, stats_y))
+            stats_y += 20
+        
+        # Inventory count
+        inventory = self.map_manager.get_player_inventory()
+        inventory_text = f"Inventory: {len(inventory)} items"
+        inventory_surface = small_font.render(inventory_text, True, WHITE)
+        self.screen.blit(inventory_surface, (10, stats_y))
         
         # Controls reminder
-        controls_text = "Use WASD or Arrow Keys to move (only on walkable tiles)"
-        controls_surface = font.render(controls_text, True, WHITE)
+        controls_text = "Use WASD or Arrow Keys to move • Step on Exit tiles to change maps"
+        controls_surface = small_font.render(controls_text, True, WHITE)
         self.screen.blit(controls_surface, (10, HEIGHT - 30))
     
     def run(self):
