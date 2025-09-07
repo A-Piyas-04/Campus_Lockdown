@@ -1,0 +1,51 @@
+{
+  "name": "Campus Dormitory Interior",
+  "description": "A student dormitory with individual rooms, beds, common areas, and study spaces",
+  "width": 20,
+  "height": 15,
+  "tile_size": 50,
+  "spawn_point": {
+    "x": 1,
+    "y": 14
+  },
+  "tile_legend": {
+    "G": "grass",
+    "W": "water",
+    "B": "building_wall",
+    "T": "tree",
+    "E": "empty",
+    "P": "pathway",
+    "L": "library",
+    "C": "cafeteria",
+    "D": "dormitory",
+    "S": "sports_field",
+    "R": "parking_lot",
+    "O": "door",
+    "F": "bookshelf",
+    "K": "desk",
+    "H": "chair",
+    "M": "dining_table",
+    "N": "kitchen_counter",
+    "V": "serving_counter",
+    "A": "bed",
+    "U": "wardrobe",
+    "I": "bathroom"
+  },
+  "map_data": [
+    "BBBBBBBBBBBBBBBBBBBB",
+    "BABUBABUBABUBABUBAB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BABUBABUBABUBABUBAB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BABUBABUBABUBABUBAB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BKHBKHBEEEEEEKHBKHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BIIBIBIBIBIBIBIBIBIB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BABUBABUBABUBABUBAB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BABUBABUBABUBABUBAB",
+    "OEEEEEEEEEEEEEEEEEB"
+  ]
+}

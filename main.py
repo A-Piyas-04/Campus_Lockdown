@@ -52,6 +52,23 @@ class TileType:
     DORMITORY = 8
     SPORTS_FIELD = 9
     PARKING_LOT = 10
+    DOOR = 11
+    BOOKSHELF = 12
+    DESK = 13
+    CHAIR = 14
+    DINING_TABLE = 15
+    KITCHEN_COUNTER = 16
+    SERVING_COUNTER = 17
+    BED = 18
+    WARDROBE = 19
+    BATHROOM = 20
+    PARKING_SPACE = 21
+    DRIVING_LANE = 22
+    SIDEWALK = 23
+    LIBRARY_DOOR = 24
+    CAFETERIA_DOOR = 25
+    DORMITORY_DOOR = 26
+    PARKING_DOOR = 27
     
     # Character to tile type mapping for JSON maps
     CHAR_TO_TYPE = {
@@ -65,7 +82,24 @@ class TileType:
         'C': CAFETERIA,
         'D': DORMITORY,
         'S': SPORTS_FIELD,
-        'R': PARKING_LOT
+        'R': PARKING_LOT,
+        'O': DOOR,
+        'F': BOOKSHELF,
+        'K': DESK,
+        'H': CHAIR,
+        'M': DINING_TABLE,
+        'N': KITCHEN_COUNTER,
+        'V': SERVING_COUNTER,
+        'A': BED,
+        'U': WARDROBE,
+        'I': BATHROOM,
+        'X': PARKING_SPACE,
+        'Y': DRIVING_LANE,
+        'Z': SIDEWALK,
+        'Q': LIBRARY_DOOR,     # DL - Door Library
+        'J': CAFETERIA_DOOR,   # DC - Door Cafeteria  
+        'M': DORMITORY_DOOR,   # DD - Door Dormitory
+        'N': PARKING_DOOR      # DP - Door Parking
     }
     
     @classmethod
@@ -86,6 +120,23 @@ TILE_COLORS = {
     TileType.DORMITORY: (70, 130, 180), # Steel blue dormitory
     TileType.SPORTS_FIELD: (34, 139, 34), # Forest green sports field
     TileType.PARKING_LOT: (105, 105, 105), # Dim gray parking
+    TileType.DOOR: (139, 69, 19),      # Dark brown door (same as library for consistency)
+    TileType.BOOKSHELF: (101, 67, 33),  # Dark brown bookshelf
+    TileType.DESK: (160, 82, 45),      # Sandy brown desk
+    TileType.CHAIR: (139, 69, 19),     # Dark brown chair
+    TileType.DINING_TABLE: (139, 69, 19), # Dark brown dining table
+    TileType.KITCHEN_COUNTER: (192, 192, 192), # Silver kitchen counter
+    TileType.SERVING_COUNTER: (255, 140, 0), # Orange serving counter
+    TileType.BED: (255, 192, 203), # Pink bed
+    TileType.WARDROBE: (101, 67, 33), # Dark brown wardrobe
+    TileType.BATHROOM: (173, 216, 230), # Light blue bathroom
+    TileType.PARKING_SPACE: (128, 128, 128), # Gray parking space
+    TileType.DRIVING_LANE: (64, 64, 64), # Dark gray driving lane
+    TileType.SIDEWALK: (192, 192, 192), # Light gray sidewalk
+    TileType.LIBRARY_DOOR: (139, 69, 19), # Dark brown library door
+    TileType.CAFETERIA_DOOR: (255, 140, 0), # Orange cafeteria door
+    TileType.DORMITORY_DOOR: (70, 130, 180), # Steel blue dormitory door
+    TileType.PARKING_DOOR: (105, 105, 105), # Gray parking door
 }
 
 # Secondary colors for visual variety
@@ -101,10 +152,27 @@ TILE_ACCENT_COLORS = {
     TileType.DORMITORY: (100, 149, 237), # Cornflower blue dormitory accent
     TileType.SPORTS_FIELD: (50, 205, 50), # Lime green sports accent
     TileType.PARKING_LOT: (128, 128, 128), # Gray parking accent
+    TileType.DOOR: (160, 82, 45),      # Sandy brown door accent
+    TileType.BOOKSHELF: (139, 90, 43),  # Light brown bookshelf accent
+    TileType.DESK: (205, 133, 63),     # Peru desk accent
+    TileType.CHAIR: (160, 82, 45),     # Sandy brown chair accent
+    TileType.DINING_TABLE: (160, 82, 45), # Sandy brown dining table accent
+    TileType.KITCHEN_COUNTER: (211, 211, 211), # Light gray kitchen counter accent
+    TileType.SERVING_COUNTER: (255, 165, 0), # Orange serving counter accent
+    TileType.BED: (255, 218, 185), # Peach bed accent
+    TileType.WARDROBE: (160, 82, 45), # Light brown wardrobe accent
+    TileType.BATHROOM: (135, 206, 235), # Sky blue bathroom accent
+    TileType.PARKING_SPACE: (169, 169, 169), # Dark gray parking space accent
+    TileType.DRIVING_LANE: (105, 105, 105), # Dim gray driving lane accent
+    TileType.SIDEWALK: (211, 211, 211), # Light gray sidewalk accent
+    TileType.LIBRARY_DOOR: (160, 82, 45), # Sandy brown library door accent
+    TileType.CAFETERIA_DOOR: (255, 165, 0), # Orange cafeteria door accent
+    TileType.DORMITORY_DOOR: (100, 149, 237), # Cornflower blue dormitory door accent
+    TileType.PARKING_DOOR: (128, 128, 128), # Gray parking door accent
 }
 
-# Walkable tiles (tiles the player can move on)
-WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.PATHWAY, TileType.LIBRARY, TileType.CAFETERIA, TileType.DORMITORY, TileType.SPORTS_FIELD, TileType.PARKING_LOT}
+# Walkable tile types (tiles the player can move onto)
+WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.PATHWAY, TileType.LIBRARY, TileType.CAFETERIA, TileType.DORMITORY, TileType.SPORTS_FIELD, TileType.PARKING_LOT, TileType.DOOR, TileType.DESK, TileType.CHAIR, TileType.DINING_TABLE, TileType.SERVING_COUNTER, TileType.BED, TileType.BATHROOM, TileType.PARKING_SPACE, TileType.DRIVING_LANE, TileType.SIDEWALK, TileType.LIBRARY_DOOR, TileType.CAFETERIA_DOOR, TileType.DORMITORY_DOOR, TileType.PARKING_DOOR}
 
 class Tile:
     """
@@ -1082,6 +1150,11 @@ class Game:
         self.items = []
         self._spawn_items()
         
+        # Map transition system
+        self.current_map_type = "campus"  # Track current map type
+        self.campus_map = self.game_map  # Store reference to campus map
+        self.interior_maps = {}  # Cache for interior maps
+        
         # Background color for better contrast
         self.bg_color = (20, 30, 40)  # Dark blue-gray background
     
@@ -1192,6 +1265,99 @@ class Game:
                     else:
                         print("Inventory is full!")
     
+    def _check_door_transition(self):
+        """
+        Check if the player is on a door tile and handle map transitions.
+        """
+        player_grid_x, player_grid_y = self.player.get_grid_position()
+        current_tile = self.game_map.get_tile(player_grid_x, player_grid_y)
+        
+        if current_tile:
+            tile_type = current_tile.tile_type
+            
+            # Check for building-specific doors
+            if tile_type == TileType.LIBRARY_DOOR:
+                self._transition_to_interior("library")
+            elif tile_type == TileType.CAFETERIA_DOOR:
+                self._transition_to_interior("cafeteria")
+            elif tile_type == TileType.DORMITORY_DOOR:
+                self._transition_to_interior("dormitory")
+            elif tile_type == TileType.PARKING_DOOR:
+                self._transition_to_interior("parking")
+            elif tile_type == TileType.DOOR and self.current_map_type != "campus":
+                # Generic door in interior maps - return to campus
+                self._transition_to_campus()
+    
+    def _transition_to_interior(self, building_type):
+        """
+        Transition from campus to an interior map.
+        """
+        if self.current_map_type == "campus":
+            # Load interior map if not cached
+            if building_type not in self.interior_maps:
+                map_file = f"{building_type}_map.json"
+                try:
+                    self.interior_maps[building_type] = Map.from_json(map_file)
+                    print(f"Loaded {building_type} interior map")
+                except FileNotFoundError:
+                    print(f"Warning: {map_file} not found")
+                    return
+            
+            # Switch to interior map
+            self.game_map = self.interior_maps[building_type]
+            self.current_map_type = building_type
+            self.player.set_map(self.game_map)
+            
+            # Position player at entrance (near a door)
+            entrance_pos = self._find_entrance_position()
+            if entrance_pos:
+                self.player.x, self.player.y = self.game_map.grid_to_pixel(entrance_pos[0], entrance_pos[1])
+            
+            print(f"Entered {building_type}")
+    
+    def _transition_to_campus(self):
+        """
+        Transition from interior back to campus map.
+        """
+        if self.current_map_type != "campus":
+            self.game_map = self.campus_map
+            self.current_map_type = "campus"
+            self.player.set_map(self.game_map)
+            
+            # Position player outside the building they just exited
+            exit_pos = self._find_campus_exit_position()
+            if exit_pos:
+                self.player.x, self.player.y = self.game_map.grid_to_pixel(exit_pos[0], exit_pos[1])
+            
+            print("Returned to campus")
+    
+    def _find_entrance_position(self):
+        """
+        Find a suitable entrance position in interior maps (near a door).
+        """
+        for y in range(self.game_map.height):
+            for x in range(self.game_map.width):
+                tile = self.game_map.get_tile(x, y)
+                if tile and tile.tile_type == TileType.DOOR:
+                    # Find adjacent walkable tile
+                    for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                        adj_x, adj_y = x + dx, y + dy
+                        if (0 <= adj_x < self.game_map.width and 
+                            0 <= adj_y < self.game_map.height and
+                            self.game_map.is_walkable(adj_x, adj_y)):
+                            return (adj_x, adj_y)
+        
+        # Fallback to any walkable position
+        return self._find_valid_start_position()
+    
+    def _find_campus_exit_position(self):
+        """
+        Find a position on campus near the building the player just exited.
+        """
+        # For now, just return a safe walkable position
+        # In a more complex implementation, this could track which door was used
+        return self._find_valid_start_position()
+    
     def handle_events(self):
         """
         Handle pygame events like window close and key presses.
@@ -1246,6 +1412,9 @@ class Game:
         
         # Check for item collection
         self._check_item_collection()
+        
+        # Check for door transitions
+        self._check_door_transition()
         
         self.handle_input()
     

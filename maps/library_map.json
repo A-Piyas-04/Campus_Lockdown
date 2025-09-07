@@ -1,0 +1,45 @@
+{
+  "name": "Campus Library Interior",
+  "description": "A comprehensive library with reading areas, bookshelves, study rooms, and computer stations",
+  "width": 20,
+  "height": 15,
+  "tile_size": 50,
+  "spawn_point": {
+    "x": 10,
+    "y": 14
+  },
+  "tile_legend": {
+    "G": "grass",
+    "W": "water",
+    "B": "building_wall",
+    "T": "tree",
+    "E": "empty",
+    "P": "pathway",
+    "L": "library",
+    "C": "cafeteria",
+    "D": "dormitory",
+    "S": "sports_field",
+    "R": "parking_lot",
+    "O": "door",
+    "F": "bookshelf",
+    "K": "desk",
+    "H": "chair"
+  },
+  "map_data": [
+    "BBBBBBBBBBBBBBBBBBBB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BFFBFFBFFBFFBFFBFFB",
+    "BFFBFFBFFBFFBFFBFFB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BKHBKHBKHBKHBKHBKHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BFFBFFBFFBFFBFFBFFB",
+    "BFFBFFBFFBFFBFFBFFB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BKHEEEEEEEEEEEEKHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BFFBFFBFFBFFBFFBFFB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BBBBBBBBBOBBBBBBBBBB"
+  ]
+}

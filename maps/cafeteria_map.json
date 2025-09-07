@@ -1,0 +1,48 @@
+{
+  "name": "Campus Cafeteria Interior",
+  "description": "A bustling cafeteria with dining tables, kitchen area, serving counters, and food stations",
+  "width": 20,
+  "height": 15,
+  "tile_size": 50,
+  "spawn_point": {
+    "x": 10,
+    "y": 14
+  },
+  "tile_legend": {
+    "G": "grass",
+    "W": "water",
+    "B": "building_wall",
+    "T": "tree",
+    "E": "empty",
+    "P": "pathway",
+    "L": "library",
+    "C": "cafeteria",
+    "D": "dormitory",
+    "S": "sports_field",
+    "R": "parking_lot",
+    "O": "door",
+    "F": "bookshelf",
+    "K": "desk",
+    "H": "chair",
+    "M": "dining_table",
+    "N": "kitchen_counter",
+    "V": "serving_counter"
+  },
+  "map_data": [
+    "BBBBBBBBBBBBBBBBBBBB",
+    "BNNNNNNNNNNNNNNNNEB",
+    "BVVVVVVVVVVVVVVVVEB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BMHBMHBMHBMHBMHBMHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BMHBMHBMHBMHBMHBMHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BMHBMHBMHBMHBMHBMHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BMHBMHBMHBMHBMHBMHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BMHBMHBMHBMHBMHBMHB",
+    "BEEEEEEEEEEEEEEEEEB",
+    "BBBBBBBBBOBBBBBBBBBB"
+  ]
+}
