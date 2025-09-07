@@ -42,9 +42,18 @@ class Camera:
         self.target_x = target_x - self.width // 2
         self.target_y = target_y - self.height // 2
         
-        # Clamp camera to map bounds
-        self.target_x = max(0, min(self.target_x, map_width - self.width))
-        self.target_y = max(0, min(self.target_y, map_height - self.height))
+        # Clamp camera to map bounds (handle small maps that are smaller than viewport)
+        if map_width <= self.width:
+            # Center small maps horizontally
+            self.target_x = -(self.width - map_width) // 2
+        else:
+            self.target_x = max(0, min(self.target_x, map_width - self.width))
+            
+        if map_height <= self.height:
+            # Center small maps vertically
+            self.target_y = -(self.height - map_height) // 2
+        else:
+            self.target_y = max(0, min(self.target_y, map_height - self.height))
         
         # Smooth camera movement
         self.x += (self.target_x - self.x) * self.follow_speed * dt

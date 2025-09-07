@@ -68,10 +68,10 @@ class TileType:
         'X': PARKING_SPACE,
         'Y': DRIVING_LANE,
         'Z': SIDEWALK,
-        'Q': LIBRARY_DOOR,     # DL - Door Library
-        'J': CAFETERIA_DOOR,   # DC - Door Cafeteria  
-        'M': DORMITORY_DOOR,   # DD - Door Dormitory
-        'N': PARKING_DOOR      # DP - Door Parking
+        'Q': LIBRARY_DOOR,     # Library entrance door
+        'J': CAFETERIA_DOOR,   # Cafeteria entrance door  
+        '1': DORMITORY_DOOR,   # Dormitory entrance door (changed from M)
+        '2': PARKING_DOOR      # Parking entrance door (changed from N)
     }
     
     @classmethod

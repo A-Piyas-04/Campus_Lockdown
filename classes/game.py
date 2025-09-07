@@ -84,6 +84,7 @@ class Game:
         self.current_map_type = "campus"  # Track current map type
         self.campus_map = self.game_map  # Store reference to campus map
         self.interior_maps = {}  # Cache for interior maps
+        self.last_building_entered = None  # Track which building player entered from
         
         # Background color for better contrast
         self.bg_color = (20, 30, 40)  # Dark blue-gray background
@@ -213,7 +214,7 @@ class Game:
             elif tile_type == TileType.DORMITORY_DOOR:
                 self._transition_to_interior("dormitory")
             elif tile_type == TileType.PARKING_DOOR:
-                self._transition_to_interior("parking")
+                self._transition_to_interior("parking_map")
             elif tile_type == TileType.DOOR and self.current_map_type != "campus":
                 # Generic door in interior maps - return to campus
                 self._transition_to_campus()
@@ -223,9 +224,16 @@ class Game:
         Transition from campus to an interior map.
         """
         if self.current_map_type == "campus":
+            # Store current player position for exit positioning
+            player_grid_x, player_grid_y = self.player.get_grid_position()
+            self.last_building_entered = {
+                'type': building_type,
+                'campus_exit_pos': (player_grid_x, player_grid_y)
+            }
+            
             # Load interior map if not cached
             if building_type not in self.interior_maps:
-                map_file = f"{building_type}_map.json"
+                map_file = os.path.join("maps", f"{building_type}_map.json")
                 try:
                     self.interior_maps[building_type] = Map.from_json(map_file)
                     print(f"Loaded {building_type} interior map")
@@ -242,6 +250,11 @@ class Game:
             entrance_pos = self._find_entrance_position()
             if entrance_pos:
                 self.player.x, self.player.y = self.game_map.grid_to_pixel(entrance_pos[0], entrance_pos[1])
+                # Update player's grid position to match new pixel position
+                self.player.grid_x = entrance_pos[0]
+                self.player.grid_y = entrance_pos[1]
+                self.player.target_grid_x = entrance_pos[0]
+                self.player.target_grid_y = entrance_pos[1]
             
             print(f"Entered {building_type}")
     
@@ -258,13 +271,28 @@ class Game:
             exit_pos = self._find_campus_exit_position()
             if exit_pos:
                 self.player.x, self.player.y = self.game_map.grid_to_pixel(exit_pos[0], exit_pos[1])
+                # Update player's grid position to match new pixel position
+                self.player.grid_x = exit_pos[0]
+                self.player.grid_y = exit_pos[1]
+                self.player.target_grid_x = exit_pos[0]
+                self.player.target_grid_y = exit_pos[1]
             
             print("Returned to campus")
     
     def _find_entrance_position(self):
         """
-        Find a suitable entrance position in interior maps (near a door).
+        Find a suitable entrance position in interior maps (use spawn point or near door).
         """
+        # First, try to use the map's designated spawn point
+        if hasattr(self.game_map, 'spawn_point') and self.game_map.spawn_point:
+            spawn_x = self.game_map.spawn_point['x']
+            spawn_y = self.game_map.spawn_point['y']
+            if (0 <= spawn_x < self.game_map.width and 
+                0 <= spawn_y < self.game_map.height and
+                self.game_map.is_walkable(spawn_x, spawn_y)):
+                return (spawn_x, spawn_y)
+        
+        # Fallback: Find position near a door
         for y in range(self.game_map.height):
             for x in range(self.game_map.width):
                 tile = self.game_map.get_tile(x, y)
@@ -277,15 +305,40 @@ class Game:
                             self.game_map.is_walkable(adj_x, adj_y)):
                             return (adj_x, adj_y)
         
-        # Fallback to any walkable position
+        # Final fallback to any walkable position
         return self._find_valid_start_position()
     
     def _find_campus_exit_position(self):
         """
         Find a position on campus near the building the player just exited.
         """
-        # For now, just return a safe walkable position
-        # In a more complex implementation, this could track which door was used
+        # If we have stored the entrance position, use it
+        if self.last_building_entered and 'campus_exit_pos' in self.last_building_entered:
+            exit_x, exit_y = self.last_building_entered['campus_exit_pos']
+            
+            # Find a walkable position near the stored exit position
+            for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]:
+                test_x, test_y = exit_x + dx, exit_y + dy
+                if (0 <= test_x < self.campus_map.width and 
+                    0 <= test_y < self.campus_map.height and
+                    self.campus_map.is_walkable(test_x, test_y)):
+                    return (test_x, test_y)
+            
+            # If the stored position itself is walkable, use it
+            if (0 <= exit_x < self.campus_map.width and 
+                0 <= exit_y < self.campus_map.height and
+                self.campus_map.is_walkable(exit_x, exit_y)):
+                return (exit_x, exit_y)
+        
+        # Fallback to campus spawn point or any walkable position
+        if hasattr(self.campus_map, 'spawn_point') and self.campus_map.spawn_point:
+            spawn_x = self.campus_map.spawn_point['x']
+            spawn_y = self.campus_map.spawn_point['y']
+            if (0 <= spawn_x < self.campus_map.width and 
+                0 <= spawn_y < self.campus_map.height and
+                self.campus_map.is_walkable(spawn_x, spawn_y)):
+                return (spawn_x, spawn_y)
+        
         return self._find_valid_start_position()
     
     def handle_events(self):
