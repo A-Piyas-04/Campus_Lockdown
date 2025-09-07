@@ -46,6 +46,12 @@ class TileType:
     WATER = 2
     WALL = 3
     TREE = 4
+    PATHWAY = 5
+    LIBRARY = 6
+    CAFETERIA = 7
+    DORMITORY = 8
+    SPORTS_FIELD = 9
+    PARKING_LOT = 10
     
     # Character to tile type mapping for JSON maps
     CHAR_TO_TYPE = {
@@ -53,7 +59,13 @@ class TileType:
         'G': GRASS,
         'W': WATER,
         'B': WALL,
-        'T': TREE
+        'T': TREE,
+        'P': PATHWAY,
+        'L': LIBRARY,
+        'C': CAFETERIA,
+        'D': DORMITORY,
+        'S': SPORTS_FIELD,
+        'R': PARKING_LOT
     }
     
     @classmethod
@@ -68,6 +80,12 @@ TILE_COLORS = {
     TileType.WATER: (33, 150, 243),    # Clear blue water
     TileType.WALL: (121, 85, 72),      # Warm brown building walls
     TileType.TREE: (56, 142, 60),      # Rich forest green
+    TileType.PATHWAY: (169, 169, 169), # Light gray concrete
+    TileType.LIBRARY: (139, 69, 19),   # Dark brown library
+    TileType.CAFETERIA: (255, 140, 0), # Orange cafeteria
+    TileType.DORMITORY: (70, 130, 180), # Steel blue dormitory
+    TileType.SPORTS_FIELD: (34, 139, 34), # Forest green sports field
+    TileType.PARKING_LOT: (105, 105, 105), # Dim gray parking
 }
 
 # Secondary colors for visual variety
@@ -77,10 +95,16 @@ TILE_ACCENT_COLORS = {
     TileType.WATER: (100, 181, 246),   # Light water ripples
     TileType.WALL: (141, 110, 99),     # Light brick accent
     TileType.TREE: (102, 187, 106),    # Light leaf accent
+    TileType.PATHWAY: (192, 192, 192), # Silver pathway accent
+    TileType.LIBRARY: (160, 82, 45),   # Sandy brown library accent
+    TileType.CAFETERIA: (255, 165, 0), # Orange cafeteria accent
+    TileType.DORMITORY: (100, 149, 237), # Cornflower blue dormitory accent
+    TileType.SPORTS_FIELD: (50, 205, 50), # Lime green sports accent
+    TileType.PARKING_LOT: (128, 128, 128), # Gray parking accent
 }
 
 # Walkable tiles (tiles the player can move on)
-WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS}
+WALKABLE_TILES = {TileType.EMPTY, TileType.GRASS, TileType.PATHWAY, TileType.LIBRARY, TileType.CAFETERIA, TileType.DORMITORY, TileType.SPORTS_FIELD, TileType.PARKING_LOT}
 
 class Tile:
     """
@@ -137,9 +161,7 @@ class Tile:
                         pygame.draw.rect(screen, (160, 82, 45), 
                                        (self.pixel_x + i, self.pixel_y + j, 8, 8))
         
-        # Draw tile border for grid visibility
-        pygame.draw.rect(screen, (0, 0, 0), 
-                        (self.pixel_x, self.pixel_y, TILE_SIZE, TILE_SIZE), 1)
+        # Grid borders removed for cleaner appearance
 
 class Map:
     """
@@ -378,9 +400,55 @@ class Map:
                                        (screen_x + TILE_SIZE - i, screen_y + TILE_SIZE), 
                                        (screen_x + TILE_SIZE, screen_y + TILE_SIZE - i), 1)
                 
-                # Draw tile border
-                pygame.draw.rect(screen, (0, 0, 0), 
-                               (screen_x, screen_y, TILE_SIZE, TILE_SIZE), 1)
+                elif tile.tile_type == TileType.PATHWAY:
+                    # Concrete pathway with center line
+                    accent_color = TILE_ACCENT_COLORS[TileType.PATHWAY]
+                    pygame.draw.line(screen, accent_color, 
+                                   (screen_x, screen_y + TILE_SIZE//2), 
+                                   (screen_x + TILE_SIZE, screen_y + TILE_SIZE//2), 2)
+                
+                elif tile.tile_type == TileType.LIBRARY:
+                    # Library with book shelves pattern
+                    accent_color = TILE_ACCENT_COLORS[TileType.LIBRARY]
+                    for i in range(5, TILE_SIZE-5, 10):
+                        pygame.draw.rect(screen, accent_color, 
+                                       (screen_x + i, screen_y + 5, 8, TILE_SIZE-10))
+                
+                elif tile.tile_type == TileType.CAFETERIA:
+                    # Cafeteria with table pattern
+                    accent_color = TILE_ACCENT_COLORS[TileType.CAFETERIA]
+                    pygame.draw.rect(screen, accent_color, 
+                                   (screen_x + 10, screen_y + 10, TILE_SIZE-20, TILE_SIZE-20))
+                    pygame.draw.circle(screen, tile.color, 
+                                     (screen_x + TILE_SIZE//2, screen_y + TILE_SIZE//2), 8)
+                
+                elif tile.tile_type == TileType.DORMITORY:
+                    # Dormitory with window pattern
+                    accent_color = TILE_ACCENT_COLORS[TileType.DORMITORY]
+                    for i in range(8, TILE_SIZE-8, 16):
+                        for j in range(8, TILE_SIZE-8, 16):
+                            pygame.draw.rect(screen, accent_color, 
+                                           (screen_x + i, screen_y + j, 12, 12))
+                
+                elif tile.tile_type == TileType.SPORTS_FIELD:
+                    # Sports field with line markings
+                    accent_color = TILE_ACCENT_COLORS[TileType.SPORTS_FIELD]
+                    pygame.draw.line(screen, accent_color, 
+                                   (screen_x + TILE_SIZE//2, screen_y), 
+                                   (screen_x + TILE_SIZE//2, screen_y + TILE_SIZE), 2)
+                    pygame.draw.line(screen, accent_color, 
+                                   (screen_x, screen_y + TILE_SIZE//2), 
+                                   (screen_x + TILE_SIZE, screen_y + TILE_SIZE//2), 2)
+                
+                elif tile.tile_type == TileType.PARKING_LOT:
+                    # Parking lot with parking space lines
+                    accent_color = TILE_ACCENT_COLORS[TileType.PARKING_LOT]
+                    for i in range(0, TILE_SIZE, 12):
+                        pygame.draw.line(screen, accent_color, 
+                                       (screen_x + i, screen_y), 
+                                       (screen_x + i, screen_y + TILE_SIZE), 1)
+                
+                # Grid borders removed for cleaner appearance
 
 class ItemType:
     """Item type constants for different collectible items."""
